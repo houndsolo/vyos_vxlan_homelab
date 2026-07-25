@@ -30,6 +30,48 @@ resource "vyos_policy_prefix_list_rule" "ipv4_vpn_export_prefix_rules" {
   prefix = each.value.prefix
 }
 
+resource "vyos_policy_route_map" "evpn_advertise" {
+  for_each = var.evpn_ipv4_advertisement_policy
+
+  identifier = {
+    route_map = each.value.route_map_name
+  }
+}
+
+resource "vyos_policy_route_map_rule" "evpn_advertise_deny_native" {
+  depends_on = [
+    vyos_policy_prefix_list_rule.ipv4_vpn_export_prefix_rules,
+    vyos_policy_route_map.evpn_advertise,
+  ]
+  for_each = var.evpn_ipv4_advertisement_policy
+
+  identifier = {
+    route_map = each.value.route_map_name
+    rule      = 10
+  }
+
+  action = "deny"
+  match = {
+    ip = {
+      address = {
+        prefix_list = each.value.prefix_list_name
+      }
+    }
+  }
+}
+
+resource "vyos_policy_route_map_rule" "evpn_advertise_permit_other" {
+  depends_on = [vyos_policy_route_map.evpn_advertise]
+  for_each   = var.evpn_ipv4_advertisement_policy
+
+  identifier = {
+    route_map = each.value.route_map_name
+    rule      = 100
+  }
+
+  action = "permit"
+}
+
 resource "vyos_policy_as_path_list" "advertise_ext_l3" {
   identifier = {
     as_path_list = "advertise_ext_l3_AS"
@@ -103,6 +145,8 @@ resource "vyos_policy_route_map_rule" "ipv4_vpn_export_deny" {
 resource "vyos_vrf_name" "create_vrfs" {
   depends_on = [
     module.leaf_common,
+    vyos_policy_route_map_rule.evpn_advertise_deny_native,
+    vyos_policy_route_map_rule.evpn_advertise_permit_other,
     #vyos_interfaces_ethernet_vif.set_eth3_vif_mtu
   ]
   for_each = var.vnis.l3
@@ -128,11 +172,11 @@ resource "vyos_vrf_name" "create_vrfs" {
         ipv4_unicast = merge(
           {
             export = {
-              vpn  = each.value.border_leaf_ipv4_vpn_import_bool
+              vpn = each.value.border_leaf_ipv4_vpn_import_bool
             }
             import = {
-              vpn  = each.value.border_leaf_ipv4_vpn_import_bool
-              vrf  = each.value.border_leaf_ipv4_vrf_imports
+              vpn = each.value.border_leaf_ipv4_vpn_import_bool
+              vrf = each.value.border_leaf_ipv4_vrf_imports
             }
             #label  = { vpn = { export = "auto" } }
 
@@ -176,7 +220,9 @@ resource "vyos_vrf_name" "create_vrfs" {
             advertise = {
               ipv4 = {
                 unicast = {
-                  #route_map = "block_local_as_rm"
+                  route_map = contains(keys(var.evpn_ipv4_advertisement_policy), each.key) ? (
+                    var.evpn_ipv4_advertisement_policy[each.key].route_map_name
+                  ) : "block_local_as_rm"
                 }
               }
             }

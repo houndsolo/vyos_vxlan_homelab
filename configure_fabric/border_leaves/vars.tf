@@ -67,6 +67,14 @@ variable "ipv4_vpn_export_policy" {
   }))
 }
 
+variable "evpn_ipv4_advertisement_policy" {
+  description = "Per-VRF EVPN IPv4 advertisement policy names derived by configure_fabric."
+  type = map(object({
+    prefix_list_name = string
+    route_map_name   = string
+  }))
+}
+
 variable "vxlan" {
   type = object({
     mtu                       = number

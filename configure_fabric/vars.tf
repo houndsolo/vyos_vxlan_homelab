@@ -76,12 +76,23 @@ locals {
   ipv4_vpn_export_policy = {
     for l3_key, l3 in var.vnis.l3 :
     l3_key => {
-      prefix_list_name = "PL-${upper(replace(l3.vrf, "_", "-"))}-IPV4-VPN-EXPORT"
+      prefix_list_name = "PL-${upper(replace(l3.vrf, "_", "-"))}-IPV4-NATIVE"
       route_map_name   = "RM-${upper(replace(l3.vrf, "_", "-"))}-IPV4-VPN-EXPORT"
     }
     if anytrue([
       for l2_key, l2 in l3.l2 : try(l2.export_ipv4_unicast, false)
     ])
+  }
+
+  evpn_ipv4_advertisement_policy = {
+    for l3_key, l3 in var.vnis.l3 :
+    l3_key => {
+      prefix_list_name = local.ipv4_vpn_export_policy[l3_key].prefix_list_name
+      route_map_name   = "RM-${upper(replace(l3.vrf, "_", "-"))}-EVPN-ADVERTISE"
+    }
+    if try(l3.export_vpn_ipv4, false) &&
+    try(l3.border_leaf_ipv4_vpn_import_bool, false) &&
+    contains(keys(local.ipv4_vpn_export_policy), l3_key)
   }
 }
 

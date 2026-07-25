@@ -9,10 +9,11 @@ module "border_leaves" {
   vnis        = var.vnis
   external_l3 = var.external_l3
 
-  vxlan                  = var.fabric.vxlan
-  spines                 = local.derived_fabric.spines
-  l2_vnis                = local.l2_vnis
-  ipv4_vpn_export_policy = local.ipv4_vpn_export_policy
+  vxlan                          = var.fabric.vxlan
+  spines                         = local.derived_fabric.spines
+  l2_vnis                        = local.l2_vnis
+  ipv4_vpn_export_policy         = local.ipv4_vpn_export_policy
+  evpn_ipv4_advertisement_policy = local.evpn_ipv4_advertisement_policy
 }
 
 module "fabric_ext_leaf_vms" {
@@ -30,4 +31,3 @@ module "fabric_ext_leaf_vms" {
   l2_vnis                = local.l2_vnis
   ipv4_vpn_export_policy = local.ipv4_vpn_export_policy
 }
-
