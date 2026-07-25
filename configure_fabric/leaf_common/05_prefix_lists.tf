@@ -137,11 +137,11 @@ resource "vyos_policy_route_map_rule" "route_map_block_local_evpn_rule" {
   match = {
     as_path = "block_local_AS_evpn_PL"
 
-    ip = {
-      address = {
-        prefix_list = local.evpn_local_svi_prefix_list_name
-      }
-    }
+    #ip = {
+    #  address = {
+    #    prefix_list = local.evpn_local_svi_prefix_list_name
+    #  }
+    #}
   }
 }
 

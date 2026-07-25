@@ -29,9 +29,9 @@ resource "vyos_protocols_bgp_peer_group" "peer_group_spine_overlay" {
   address_family = {
     l2vpn_evpn = {
       soft_reconfiguration = { inbound = true }
-      route_map = {
-        export = "block_local_as_rm"
-      }
+      #route_map = {
+      #  export = "block_local_as_rm"
+      #}
     }
   }
 }

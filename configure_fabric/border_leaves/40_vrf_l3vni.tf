@@ -30,6 +30,23 @@ resource "vyos_policy_prefix_list_rule" "ipv4_vpn_export_prefix_rules" {
   prefix = each.value.prefix
 }
 
+resource "vyos_policy_as_path_list" "advertise_ext_l3" {
+  identifier = {
+    as_path_list = "advertise_ext_l3_AS"
+  }
+}
+
+resource "vyos_policy_as_path_list_rule" "advertise_ext_l3_rule_10" {
+  depends_on = [resource.vyos_policy_as_path_list.advertise_ext_l3]
+
+  identifier = {
+    as_path_list = "advertise_ext_l3_AS"
+    rule         = 10
+  }
+
+  action = "permit"
+  regex  = "^420$"
+}
 resource "vyos_policy_route_map" "create_route_map" {
   for_each = var.ipv4_vpn_export_policy
 
@@ -57,6 +74,20 @@ resource "vyos_policy_route_map_rule" "ipv4_vpn_export_permit" {
     }
   }
 }
+
+#resource "vyos_policy_route_map_rule" "ipv4_vpn_export_permit_service_export" {
+#  depends_on = [resource.vyos_policy_route_map.create_route_map]
+#
+#  identifier = {
+#    route_map = "RM-LYLAT-SERVICE-IPV4-VPN-EXPORT"
+#    rule      = 11
+#  }
+#
+#  action = "permit"
+#  match = {
+#    as_path = "advertise_ext_l3_AS"
+#  }
+#}
 
 resource "vyos_policy_route_map_rule" "ipv4_vpn_export_deny" {
   for_each = var.ipv4_vpn_export_policy
@@ -125,7 +156,7 @@ resource "vyos_vrf_name" "create_vrfs" {
           } : {},
           contains(keys(var.ipv4_vpn_export_policy), each.key) ? {
             route_map = {
-              vrf = {
+              vpn = {
                 export = var.ipv4_vpn_export_policy[each.key].route_map_name
               }
             }
@@ -145,7 +176,7 @@ resource "vyos_vrf_name" "create_vrfs" {
             advertise = {
               ipv4 = {
                 unicast = {
-                  route_map = "block_local_as_rm"
+                    route_map = "block_local_as_rm"
                 }
               }
             }

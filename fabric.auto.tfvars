@@ -16,7 +16,7 @@ fabric = {
   bgp_l2vpn = {
     her              = true
     flooding_disable = false
-    advertise_svi    = true
+    advertise_svi    = false
     advertise_vni    = true
     rt_auto_derive   = false
   }
@@ -89,53 +89,29 @@ fabric = {
 
 vnis = {
   l3 = {
-    6200 = {
-      vni       = 6200
-      vrf       = "lylat_infra"
-      vrf_table = 700
-      #ipv4_rt_imports = "700:6600"
-      #ipv4_rt_exports = "700:6200"
-      #border_leaf_ipv4_rt_imports = ""
-      #border_leaf_ipv4_rt_exports = "700:6200"
+
+    6666 = {
+      vni       = 6666
+      vrf       = "lylat_external"
+      vrf_table = 6666
+      #ipv4_rt_imports = "700:6200 700:6900"
+      #ipv4_rt_exports = "700:6600"
+      #border_leaf_ipv4_rt_imports = "420:1337 420:666"
       #border_leaf_ipv4_vrf_imports = [
-      #  "lylat_lan",
       #]
-      border_leaf_ipv4_vpn_import_bool = false
+      border_leaf_ipv4_rt_imports = "700:6900 700:6600 700:6200"
+      border_leaf_ipv4_rt_exports = "700:6666"
+      border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4 = true
       evpn_rt_imports = [
-        "700:6200",
+        "700:6666",
       ]
       evpn_rt_exports = [
-        "700:6200",
+        "700:6666",
       ]
-      #ext_l3_vlan = 62
-      redistribute_ipv4 = {
-        connected = {}
-      }
-
-      l2 = {
-        2 = {
-          vni                  = 9002
-          vlan_id              = 2
-          anycast_gw_ip        = "10.2.0.5"
-          anycast_gw_cidr      = 16
-          anycast_mac          = "0e:00:00:10:00:02"
-          advertise_default_gw = false
-          advertise_svi_ip     = false
-          export_ipv4_unicast  = true
-        }
-        #5 = {
-        #  vni                  = 9005
-        #  vlan_id              = 5
-        #  anycast_gw_ip        = "10.5.0.5"
-        #  anycast_gw_cidr      = 16
-        #  anycast_mac          = "0e:00:00:10:00:05"
-        #  advertise_default_gw = false
-        #  advertise_svi_ip     = false
-        #  export_ipv4_unicast  = true
-        #}
-      }
+      ext_l3_vlan = 66
     }
+
     6600 = {
       vni       = 6600
       vrf       = "lylat_service"
@@ -143,11 +119,11 @@ vnis = {
       #ipv4_rt_imports = "700:6200 700:6900"
       #ipv4_rt_exports = "700:6600"
       #border_leaf_ipv4_rt_imports = "420:1337 420:666"
-      #border_leaf_ipv4_rt_exports = "700:6600"
-      border_leaf_ipv4_vpn_import_bool = false
-      border_leaf_ipv4_vrf_imports = [
-        "lylat_lan",
-      ]
+      #border_leaf_ipv4_vrf_imports = [
+      #]
+      border_leaf_ipv4_rt_imports = "700:6666 700:6900 700:6200"
+      border_leaf_ipv4_rt_exports = "700:6600"
+      border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4 = true
       evpn_rt_imports = [
         "700:6600",
@@ -155,7 +131,6 @@ vnis = {
       evpn_rt_exports = [
         "700:6600",
       ]
-      ext_l3_vlan = 66
       redistribute_ipv4 = {
         connected = {}
       }
@@ -189,12 +164,12 @@ vnis = {
       vrf_table = 1337
       #ipv4_rt_imports = "700:6600"
       #ipv4_rt_exports = "700:6900"
-      #border_leaf_ipv4_rt_imports = "700:6600"
-      #border_leaf_ipv4_rt_exports = "700:6900"
-      #border_leaf_ipv4_vpn_import_bool = false
-      border_leaf_ipv4_vrf_imports = [
-        "lylat_service",
-      ]
+      #border_leaf_ipv4_vrf_imports = [
+      #  "lylat_service",
+      #]
+      border_leaf_ipv4_rt_imports = "700:6666 700:6600"
+      border_leaf_ipv4_rt_exports = "700:6900"
+      border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4 = true
       redistribute_ipv4 = {
         connected = {}
@@ -218,6 +193,54 @@ vnis = {
           advertise_svi_ip     = false
           export_ipv4_unicast  = true
         }
+      }
+    }
+
+    6200 = {
+      vni       = 6200
+      vrf       = "lylat_infra"
+      vrf_table = 700
+      #ipv4_rt_imports = "700:6600"
+      #ipv4_rt_exports = "700:6200"
+      #border_leaf_ipv4_vrf_imports = [
+      #  "lylat_service",
+      #]
+      border_leaf_ipv4_rt_imports = "700:6666 700:6600"
+      border_leaf_ipv4_rt_exports = "700:6200"
+      border_leaf_ipv4_vpn_import_bool = true
+      export_vpn_ipv4 = true
+      evpn_rt_imports = [
+        "700:6200",
+      ]
+      evpn_rt_exports = [
+        "700:6200",
+      ]
+      #ext_l3_vlan = 62
+      redistribute_ipv4 = {
+        connected = {}
+      }
+
+      l2 = {
+        2 = {
+          vni                  = 9002
+          vlan_id              = 2
+          anycast_gw_ip        = "10.2.0.5"
+          anycast_gw_cidr      = 16
+          anycast_mac          = "0e:00:00:10:00:02"
+          advertise_default_gw = false
+          advertise_svi_ip     = false
+          export_ipv4_unicast  = true
+        }
+        #5 = {
+        #  vni                  = 9005
+        #  vlan_id              = 5
+        #  anycast_gw_ip        = "10.5.0.5"
+        #  anycast_gw_cidr      = 16
+        #  anycast_mac          = "0e:00:00:10:00:05"
+        #  advertise_default_gw = false
+        #  advertise_svi_ip     = false
+        #  export_ipv4_unicast  = true
+        #}
       }
     }
   }
