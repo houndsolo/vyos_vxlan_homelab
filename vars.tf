@@ -97,6 +97,8 @@ variable "vnis" {
       ipv4_rt_exports             = optional(string, null)
       border_leaf_ipv4_rt_imports = optional(string, null)
       border_leaf_ipv4_rt_exports = optional(string, null)
+      border_leaf_ipv4_vpn_import_bool = optional(bool, false)
+      border_leaf_ipv4_vrf_imports = optional(list(string), null)
       evpn_rt_imports             = optional(list(string), [])
       evpn_rt_exports             = optional(list(string), [])
       ext_l3_vlan                 = optional(number)

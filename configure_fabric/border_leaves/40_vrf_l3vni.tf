@@ -96,15 +96,20 @@ resource "vyos_vrf_name" "create_vrfs" {
       address_family = {
         ipv4_unicast = merge(
           {
-            export = { vpn = true }
-            import = { vpn = true }
-            label  = { vpn = { export = "auto" } }
+            export = {
+              vpn  = each.value.border_leaf_ipv4_vpn_import_bool
+            }
+            import = {
+              vpn  = each.value.border_leaf_ipv4_vpn_import_bool
+              vrf  = each.value.border_leaf_ipv4_vrf_imports
+            }
+            #label  = { vpn = { export = "auto" } }
 
-            rd = {
+            rd = each.value.border_leaf_ipv4_vpn_import_bool ? {
               vpn = {
                 export = "${var.node.vxlan_loopback_net}:${each.value.vni}"
               }
-            }
+            } : null
 
             route_target = {
               vpn = {
@@ -120,7 +125,7 @@ resource "vyos_vrf_name" "create_vrfs" {
           } : {},
           contains(keys(var.ipv4_vpn_export_policy), each.key) ? {
             route_map = {
-              vpn = {
+              vrf = {
                 export = var.ipv4_vpn_export_policy[each.key].route_map_name
               }
             }

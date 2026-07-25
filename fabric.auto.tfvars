@@ -93,13 +93,14 @@ vnis = {
       vni       = 6200
       vrf       = "lylat_infra"
       vrf_table = 700
-
-      ipv4_rt_imports = "700:6600"
-      ipv4_rt_exports = "700:6200"
-
-      border_leaf_ipv4_rt_imports = "420:666 420:77"
-      border_leaf_ipv4_rt_exports = "700:6200"
-
+      #ipv4_rt_imports = "700:6600"
+      #ipv4_rt_exports = "700:6200"
+      #border_leaf_ipv4_rt_imports = ""
+      #border_leaf_ipv4_rt_exports = "700:6200"
+      #border_leaf_ipv4_vrf_imports = [
+      #  "lylat_lan",
+      #]
+      border_leaf_ipv4_vpn_import_bool = false
       export_vpn_ipv4 = true
       evpn_rt_imports = [
         "700:6200",
@@ -107,7 +108,7 @@ vnis = {
       evpn_rt_exports = [
         "700:6200",
       ]
-      ext_l3_vlan = 62
+      #ext_l3_vlan = 62
       redistribute_ipv4 = {
         connected = {}
       }
@@ -139,13 +140,14 @@ vnis = {
       vni       = 6600
       vrf       = "lylat_service"
       vrf_table = 1000
-
-      ipv4_rt_imports = "700:6200 700:6900"
-      ipv4_rt_exports = "700:6600"
-
-      border_leaf_ipv4_rt_imports = "420:1337 420:666"
-      border_leaf_ipv4_rt_exports = "700:6600"
-
+      #ipv4_rt_imports = "700:6200 700:6900"
+      #ipv4_rt_exports = "700:6600"
+      #border_leaf_ipv4_rt_imports = "420:1337 420:666"
+      #border_leaf_ipv4_rt_exports = "700:6600"
+      border_leaf_ipv4_vpn_import_bool = false
+      border_leaf_ipv4_vrf_imports = [
+        "lylat_lan",
+      ]
       export_vpn_ipv4 = true
       evpn_rt_imports = [
         "700:6600",
@@ -154,7 +156,6 @@ vnis = {
         "700:6600",
       ]
       ext_l3_vlan = 66
-
       redistribute_ipv4 = {
         connected = {}
       }
@@ -186,13 +187,14 @@ vnis = {
       vni       = 6900
       vrf       = "lylat_lan"
       vrf_table = 1337
-
-      ipv4_rt_imports = "700:6600"
-      ipv4_rt_exports = "700:6900"
-
-      border_leaf_ipv4_rt_imports = "420:1337 420:666"
-      border_leaf_ipv4_rt_exports = "700:6900"
-
+      #ipv4_rt_imports = "700:6600"
+      #ipv4_rt_exports = "700:6900"
+      #border_leaf_ipv4_rt_imports = "700:6600"
+      #border_leaf_ipv4_rt_exports = "700:6900"
+      #border_leaf_ipv4_vpn_import_bool = false
+      border_leaf_ipv4_vrf_imports = [
+        "lylat_service",
+      ]
       export_vpn_ipv4 = true
       redistribute_ipv4 = {
         connected = {}
@@ -203,7 +205,7 @@ vnis = {
       evpn_rt_exports = [
         "700:6900",
       ]
-      ext_l3_vlan = 69
+      #ext_l3_vlan = 69
 
       l2 = {
         9 = {
