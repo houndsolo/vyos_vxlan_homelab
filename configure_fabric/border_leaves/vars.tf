@@ -67,6 +67,14 @@ variable "ipv4_vpn_export_policy" {
   }))
 }
 
+variable "ipv4_vpn_import_policy" {
+  description = "Per-VRF IPv4 VPN import policy and allowed prefixes derived by configure_fabric."
+  type = map(object({
+    prefix_list_name = string
+    route_map_name   = string
+  }))
+}
+
 variable "evpn_ipv4_advertisement_policy" {
   description = "Per-VRF EVPN IPv4 advertisement policy names derived by configure_fabric."
   type = map(object({

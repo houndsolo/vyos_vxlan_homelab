@@ -13,6 +13,7 @@ module "border_leaves" {
   spines                         = local.derived_fabric.spines
   l2_vnis                        = local.l2_vnis
   ipv4_vpn_export_policy         = local.ipv4_vpn_export_policy
+  ipv4_vpn_import_policy         = local.ipv4_vpn_import_policy
   evpn_ipv4_advertisement_policy = local.evpn_ipv4_advertisement_policy
 }
 

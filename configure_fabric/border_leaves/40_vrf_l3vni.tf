@@ -142,11 +142,82 @@ resource "vyos_policy_route_map_rule" "ipv4_vpn_export_deny" {
   action = "deny"
 }
 
+resource "vyos_policy_prefix_list" "ipv4_vpn_import" {
+  for_each = var.ipv4_vpn_import_policy
+
+  identifier = {
+    prefix_list = each.value.prefix_list_name
+  }
+}
+
+resource "vyos_policy_prefix_list_rule" "ipv4_vpn_import_permit" {
+  depends_on = [vyos_policy_prefix_list.ipv4_vpn_import]
+  for_each   = var.ipv4_vpn_import_policy
+
+  identifier = {
+    prefix_list = each.value.prefix_list_name
+    rule        = 10
+  }
+
+  action = "permit"
+  prefix = "0.0.0.0/0"
+  le     = 32
+}
+
+resource "vyos_policy_route_map" "ipv4_vpn_import" {
+  for_each = var.ipv4_vpn_import_policy
+
+  identifier = {
+    route_map = each.value.route_map_name
+  }
+}
+
+resource "vyos_policy_route_map_rule" "ipv4_vpn_import_permit" {
+  depends_on = [
+    vyos_policy_prefix_list_rule.ipv4_vpn_import_permit,
+    vyos_policy_route_map.ipv4_vpn_import,
+  ]
+  for_each = var.ipv4_vpn_import_policy
+
+  identifier = {
+    route_map = each.value.route_map_name
+    rule      = 10
+  }
+
+  action = "permit"
+  match = {
+    ip = {
+      address = {
+        prefix_list = each.value.prefix_list_name
+      }
+    }
+  }
+  set = {
+    extcommunity = {
+      none = true
+    }
+  }
+}
+
+resource "vyos_policy_route_map_rule" "ipv4_vpn_import_deny" {
+  depends_on = [vyos_policy_route_map.ipv4_vpn_import]
+  for_each   = var.ipv4_vpn_import_policy
+
+  identifier = {
+    route_map = each.value.route_map_name
+    rule      = 100
+  }
+
+  action = "deny"
+}
+
 resource "vyos_vrf_name" "create_vrfs" {
   depends_on = [
     module.leaf_common,
     vyos_policy_route_map_rule.evpn_advertise_deny_native,
     vyos_policy_route_map_rule.evpn_advertise_permit_other,
+    vyos_policy_route_map_rule.ipv4_vpn_import_permit,
+    vyos_policy_route_map_rule.ipv4_vpn_import_deny,
     #vyos_interfaces_ethernet_vif.set_eth3_vif_mtu
   ]
   for_each = var.vnis.l3
@@ -198,11 +269,16 @@ resource "vyos_vrf_name" "create_vrfs" {
           each.value.redistribute_ipv4 != null ? {
             redistribute = each.value.redistribute_ipv4
           } : {},
-          contains(keys(var.ipv4_vpn_export_policy), each.key) ? {
+          contains(keys(var.ipv4_vpn_export_policy), each.key) || contains(keys(var.ipv4_vpn_import_policy), each.key) ? {
             route_map = {
-              vpn = {
-                export = var.ipv4_vpn_export_policy[each.key].route_map_name
-              }
+              vpn = merge(
+                contains(keys(var.ipv4_vpn_export_policy), each.key) ? {
+                  export = var.ipv4_vpn_export_policy[each.key].route_map_name
+                } : {},
+                contains(keys(var.ipv4_vpn_import_policy), each.key) ? {
+                  import = var.ipv4_vpn_import_policy[each.key].route_map_name
+                } : {}
+              )
             }
           } : {}
         )

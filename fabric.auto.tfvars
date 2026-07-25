@@ -99,10 +99,10 @@ vnis = {
       #border_leaf_ipv4_rt_imports = "420:1337 420:666"
       #border_leaf_ipv4_vrf_imports = [
       #]
-      border_leaf_ipv4_rt_imports = "700:6900 700:6600 700:6200"
-      border_leaf_ipv4_rt_exports = "700:6666"
+      border_leaf_ipv4_rt_imports      = "700:6900 700:6600 700:6200"
+      border_leaf_ipv4_rt_exports      = "700:6666"
       border_leaf_ipv4_vpn_import_bool = true
-      export_vpn_ipv4 = true
+      export_vpn_ipv4                  = true
       evpn_rt_imports = [
         "700:6666",
       ]
@@ -121,10 +121,10 @@ vnis = {
       #border_leaf_ipv4_rt_imports = "420:1337 420:666"
       #border_leaf_ipv4_vrf_imports = [
       #]
-      border_leaf_ipv4_rt_imports = "700:6666 700:6900 700:6200"
-      border_leaf_ipv4_rt_exports = "700:6600"
+      border_leaf_ipv4_rt_imports      = "700:6666 700:6900 700:6200"
+      border_leaf_ipv4_rt_exports      = "700:6600"
       border_leaf_ipv4_vpn_import_bool = true
-      export_vpn_ipv4 = true
+      export_vpn_ipv4                  = true
       evpn_rt_imports = [
         "700:6600",
       ]
@@ -167,10 +167,10 @@ vnis = {
       #border_leaf_ipv4_vrf_imports = [
       #  "lylat_service",
       #]
-      border_leaf_ipv4_rt_imports = "700:6600"
-      border_leaf_ipv4_rt_exports = "700:6900"
+      border_leaf_ipv4_rt_imports      = "700:6600"
+      border_leaf_ipv4_rt_exports      = "700:6900"
       border_leaf_ipv4_vpn_import_bool = true
-      export_vpn_ipv4 = true
+      export_vpn_ipv4                  = true
       redistribute_ipv4 = {
         connected = {}
       }
@@ -205,10 +205,10 @@ vnis = {
       #border_leaf_ipv4_vrf_imports = [
       #  "lylat_service",
       #]
-      border_leaf_ipv4_rt_imports = "700:6666 700:6600"
-      border_leaf_ipv4_rt_exports = "700:6200"
+      border_leaf_ipv4_rt_imports      = "700:6666 700:6600"
+      border_leaf_ipv4_rt_exports      = "700:6200"
       border_leaf_ipv4_vpn_import_bool = true
-      export_vpn_ipv4 = true
+      export_vpn_ipv4                  = true
       evpn_rt_imports = [
         "700:6200",
       ]

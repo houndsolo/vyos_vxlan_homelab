@@ -84,6 +84,19 @@ locals {
     ])
   }
 
+  # The existing per-VRF RT import list selects which VPN routes are eligible.
+  # This policy is attached only to that VPN import path, where it strips the
+  # communities from every route that passed the RT import selection.
+  ipv4_vpn_import_policy = {
+    for destination_key, destination in var.vnis.l3 :
+    destination_key => {
+      prefix_list_name = "PL-${upper(replace(destination.vrf, "_", "-"))}-IPV4-VPN-IMPORT"
+      route_map_name   = "RM-${upper(replace(destination.vrf, "_", "-"))}-IPV4-VPN-IMPORT"
+    }
+    if try(destination.border_leaf_ipv4_vpn_import_bool, false) &&
+    destination.border_leaf_ipv4_rt_imports != null
+  }
+
   evpn_ipv4_advertisement_policy = {
     for l3_key, l3 in var.vnis.l3 :
     l3_key => {
