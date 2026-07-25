@@ -167,7 +167,7 @@ vnis = {
       #border_leaf_ipv4_vrf_imports = [
       #  "lylat_service",
       #]
-      border_leaf_ipv4_rt_imports      = "700:6600"
+      border_leaf_ipv4_rt_imports      = "700:6666 700:6600"
       border_leaf_ipv4_rt_exports      = "700:6900"
       border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4                  = true

@@ -1,121 +1,106 @@
-# VyOS VXLAN Homelab
+# VyOS EVPN/VXLAN homelab
 
-OpenTofu automation for building and configuring a VyOS/FRR EVPN-VXLAN homelab fabric.
+OpenTofu configuration for a small VyOS/FRR EVPN-VXLAN fabric hosted primarily on Proxmox. Two MikroTik CRS326 switches act as out-of-band-managed EVPN route reflectors; this repository creates VyOS VMs and configures the VyOS leaf roles.
 
-This repository is focused on a lab fabric with VyOS VTEP leaves, MikroTik CRS326 spine/route-reflector nodes, Proxmox-hosted VyOS VMs, border leaves, VRFs, L2VNIs, L3VNIs, and EVPN route-target based segmentation.
+> **Lab-specific repository:** committed `.auto.tfvars` files contain real topology and addressing intent, but not credentials. Review them before applying anywhere other than this lab.
 
-## What this builds
+## What is managed
 
-At the top level, the repo calls two modules:
+The root configuration invokes two independent modules:
 
-- `create_fabric_vms` — creates VyOS VTEP VMs on Proxmox.
-- `configure_fabric` — configures VyOS fabric nodes.
+| Module | Responsibility |
+| --- | --- |
+| `create_fabric_vms` | Creates virtual standard, border, extension, and `greatfox` leaves in Proxmox. Bare-metal inventory entries are skipped. |
+| `configure_fabric` | Configures the currently enabled border leaves and fabric-extension leaves through the VyOS API. |
 
-The current fabric model includes:
+Standard leaves and the `greatfox` leaf have provider definitions and derived inventory, but their configuration module calls are currently disabled. The MikroTik spines are inventory/peering targets only and are configured outside this repository. This distinction is important: an apply does **not** configure every entry in `fabric`.
 
-- Two MikroTik CRS326 spines. Spines are handled outside this repo and require RouterOS 7.24.1 or greater due to an EVPN route-reflector bug.
-- Standard leaf VTEP nodes.
-- Border leaf nodes.
-- Optional fabric-extension leaves.
-- A separate `greatfox` Proxmox target.
-- Multiple VRFs/L3VNIs.
-- Multiple L2VNIs with anycast gateways.
+### Design at a glance
 
-## Source of truth
+- IPv6 link-local eBGP provides the routed underlay.
+- IPv4 VTEP loopbacks use `10.255.240.<node_id>/32` by default.
+- IPv6 overlay addresses are derived from `fd69:255:240::/64`.
+- EVPN peers use the shared BGP AS `700`; underlay local ASNs are `700 + node_id`.
+- L2VNIs share bridge `br9000`; L3VNIs map to VRFs.
+- Border leaves provide optional per-VRF external L3 connectivity over VLAN subinterfaces.
+- Route distinguishers are unique per VTEP (`<router-id>:<vni>`), while route targets are shared per service (`target:<fabric-as>:<vni>`).
 
-`*.auto.tfvars` files are intended to be the main source of truth for lab-specific values. In this repo, `fabric.auto.tfvars` defines the fabric inventory, shared fabric defaults, VXLAN defaults, BGP EVPN/L2VPN defaults, DNS, and VNI intent.
+See [`configure_fabric/README.md`](configure_fabric/README.md) for module ownership and routing details.
 
-Shared fabric-wide values live under `fabric.defaults`:
+## Repository map
 
-```hcl
-fabric = {
-  defaults = {
-    bgp_system_as                     = 700
-    underlay_local_as_base            = 700
-    ipv4_loopback_prefix              = "10.255.240.0/24"
-    ipv6_underlay_prefix              = "fd69:255:240::/64"
-    vxlan_source_interface            = "dum240"
-    l2_service_bridge_id              = 9000
-    vyos_mgmt_prefix                  = "10.20.10.0/24"
-    vyos_mgmt_cidr                    = 16
-    vyos_provider_default_timeouts    = 1
-    vyos_provider_disable_verify      = true
-    vyos_overwrite_existing_on_create = true
-  }
-}
+```text
+.
+├── main.tf                       # root module wiring
+├── vars.tf                       # public input contracts
+├── versions.tf                  # provider constraints
+├── fabric.auto.tfvars           # nodes, fabric defaults, VRFs, and VNIs
+├── proxmox_vm.auto.tfvars       # VM sizing, storage, bridges, and DNS
+├── external_l3.auto.tfvars      # border-leaf upstream settings
+├── configure_fabric/
+│   ├── leaf_common/             # system, underlay, and BGP EVPN
+│   ├── leaf_l2_common/          # VXLAN devices, bridges, and SVIs
+│   ├── pve_leaves/              # ordinary/extension leaf role
+│   └── border_leaves/           # border policy and external routing
+└── create_fabric_vms/
+    └── proxmox_vteps/           # one VyOS VM resource
 ```
 
-Important derived behavior:
+`single_vrf_fabric.auto.tfvars.no` is a disabled alternative intent file retained as a reference. OpenTofu does not load it because its suffix is not `.tfvars`.
 
-- The fabric BGP system AS defaults to `fabric.defaults.bgp_system_as` (`700`).
-- Per-node underlay local-AS values are derived as `fabric.defaults.underlay_local_as_base + node.id`.
-- IPv4 loopbacks are generated with `cidrhost(fabric.defaults.ipv4_loopback_prefix, node.id)` and remain `10.255.240.<id>/32`.
-- The IPv6 underlay/VTEP prefix is declared once as `fd69:255:240::/64` in `fabric.defaults.ipv6_underlay_prefix`.
-- IPv6 VTEP loopbacks, generated VXLAN peers, and spine EVPN overlay peering addresses are derived with `cidrhost(fabric.defaults.ipv6_underlay_prefix, node.id)`.
-- VyOS API endpoints are derived from `fabric.defaults.vyos_mgmt_prefix`, for example `https://${cidrhost(fabric.defaults.vyos_mgmt_prefix, node.id)}`.
-- `configure_fabric/vars.tf` centralizes derived per-node values before passing them to leaf and border-leaf modules, keeping child module variable files focused on input contracts.
+## Prerequisites
 
-## Fabric defaults
+- OpenTofu (the commands in this repository intentionally use `tofu`, not `terraform`).
+- Access to the Proxmox APIs and VyOS HTTPS APIs referenced by the committed lab settings.
+- The provider plugins declared in `versions.tf`. The Proxmox provider uses the custom source `local/mechanic/proxmox`, so it must be installed in your OpenTofu provider mirror.
+- `~/.ssh/id_rsa` authorized as `root` on the Proxmox targets.
+- Existing Proxmox storage objects, bridges, VyOS image, and cloud-init snippet named in `proxmox_vm.auto.tfvars`.
+- MikroTik RouterOS 7.24.1 or newer on the route reflectors (the lab depends on an EVPN route-reflector fix).
 
-### BGP EVPN/L2VPN defaults
+## Credentials
 
-BGP EVPN/L2VPN defaults live in `fabric.bgp_l2vpn`:
+Supply all three sensitive root variables without committing them:
 
-```hcl
-bgp_l2vpn = {
-  her              = true
-  flooding_disable = false
-  advertise_svi    = true
-  advertise_vni    = true
-  rt_auto_derive   = false
-}
+```bash
+export TF_VAR_vyos_key='...'
+export TF_VAR_pve_api_token='...'
+export TF_VAR_gf_api_token='...'
 ```
 
-These values are passed from the top-level fabric object into the leaf and border-leaf modules.
+The credentials are:
 
-### VXLAN defaults
+- `vyos_key`: VyOS HTTPS API key.
+- `pve_api_token`: API token for the primary Proxmox cluster.
+- `gf_api_token`: API token for the separate `greatfox` Proxmox endpoint.
 
-VXLAN defaults live in `fabric.vxlan`:
+State and plan files can also contain secrets. The included `.gitignore` excludes common local state, plan, override, and credential files; use a secure remote state backend if this evolves beyond a personal lab.
 
-```hcl
-vxlan = {
-  mtu                       = 9119
-  outer_mtu                 = 9189
-  disable_forwarding        = false
-  disable_arp_filter        = false
-  enable_arp_accept         = false
-  enable_arp_announce       = false
-  enable_directed_broadcast = false
-  enable_proxy_arp          = false
-  proxy_arp_pvlan           = false
-  external                  = false
-  neighbor_suppress         = false
-  nolearning                = true
-  vni_filter                = false
-}
+## Workflow
+
+```bash
+# Install modules/providers and create/update the dependency lock file.
+tofu init
+
+# Normalize and statically check configuration.
+tofu fmt -recursive
+tofu validate
+
+# Always inspect the proposed device and VM changes.
+tofu plan -out=lab.tfplan
+
+# Apply exactly the reviewed plan.
+tofu apply lab.tfplan
 ```
 
-### L2 service bridge
+Convenience targets are available as `make fmt`, `make fmt-check`, `make init`, `make validate`, and `make check`.
 
-`fabric.defaults.l2_service_bridge_id` controls the shared L2 service bridge ID. The default `9000` preserves the existing `br9000` bridge naming.
+Because VM creation and device configuration are root sibling modules, OpenTofu may operate on them concurrently. On a first deployment, create/reach the VyOS VMs before enabling their configuration module calls. On an established lab, normal plan/apply is appropriate.
 
-## Adding nodes
+## Editing the lab
 
-### Add a spine
+### Nodes
 
-Add a new entry under `fabric.spines` with an `id` and `uplink_if` only:
-
-```hcl
-spines = {
-  rtr3 = { id = 3, uplink_if = "eth3" }
-}
-```
-
-The overlay peering address is generated from `fabric.defaults.ipv6_underlay_prefix` and the spine ID, so spine entries only need fabric inventory fields such as `id` and `uplink_if`.
-
-### Add a leaf
-
-Add a new entry under `fabric.leaves`:
+Edit the appropriate map in `fabric.auto.tfvars`:
 
 ```hcl
 leaves = {
@@ -123,133 +108,44 @@ leaves = {
 }
 ```
 
-The leaf hostname, BGP local-AS, management endpoint, IPv4 loopback, IPv6 VTEP loopback, and VXLAN peer loopback are derived from the node ID and fabric defaults.
+- `id` drives VM ID (`700 + id`), BGP local AS, loopback addresses, and management address.
+- `hypervisor_node` is required for VMs.
+- `is_vm = false` prevents VM creation.
+- `underlay_bridges` overrides the default Proxmox bridge list.
+- `underlay_peer_vlan` is used by fabric-extension underlay interfaces.
 
-### Add a border leaf
+Node IDs must therefore be unique and fit all configured CIDR ranges. A spine needs an `id` and `uplink_if`; its overlay address is derived from its ID.
 
-Add a new entry under `fabric.border_leaves`:
+### VRFs and VNIs
 
-```hcl
-border_leaves = {
-  border-3 = { id = 20, is_vm = false }
-}
-```
+Edit `vnis.l3` in `fabric.auto.tfvars`. Each L3 entry describes a VRF, table, L3VNI, EVPN route targets, optional VPN import/export behavior, and optional `ext_l3_vlan`. Nested `l2` entries describe VLAN/VNI pairs, anycast gateways/MACs, and advertisement/export switches.
 
-Border leaves use the same derived addressing and BGP defaults as standard leaves. Border-specific external L3 settings remain in `external_l3`.
+Useful conventions:
 
-## VRFs and VNIs
+- Keep one L3VNI and table number per VRF.
+- Keep one L2VNI per VLAN and ensure VNI/VLAN values are unique.
+- Use a unique anycast MAC and valid gateway CIDR for each L2 segment.
+- Omit `ext_l3_vlan` for an internal-only VRF.
+- Carefully review RT imports: they define which tenant routes can cross policy boundaries.
 
-Edit the `vnis.l3` object in `fabric.auto.tfvars` to add or remove VRFs, L3VNIs, route-targets, external L3 VLANs, and nested L2VNIs.
+### VM defaults
 
-Each L2VNI can define:
+Edit `proxmox_vm.auto.tfvars` for image, storage, cloud-init, management/underlay bridges, CPU, memory, and disk defaults. Per-node underlay bridges remain in `fabric.auto.tfvars`.
 
-- VLAN ID
-- VNI
-- Anycast gateway IP/CIDR
-- Anycast MAC
-- Default-gateway advertisement
-- SVI IP advertisement
-- IPv4 unicast export
+## Operations and troubleshooting
 
-## Repository layout
+Useful VyOS/FRR checks:
 
 ```text
-.
-├── main.tf
-├── versions.tf
-├── vars.tf
-├── fabric.auto.tfvars
-├── configure_fabric/
-│   ├── main.tf
-│   ├── providers.tf
-│   ├── vars.tf
-│   ├── leaves/
-│   └── border_leaves/
-└── create_fabric_vms/
-    ├── main.tf
-    ├── providers.tf
-    ├── vars.tf
-    └── proxmox_vteps/
-```
-
-## Providers
-
-Defined provider requirements:
-
-```hcl
-terraform {
-  required_providers {
-    vyos = {
-      source  = "registry.terraform.io/echowings/vyos-rolling"
-      version = "0.21.202507150"
-    }
-    proxmox = {
-      source  = "local/mechanic/proxmox"
-      version = "0.108.0"
-    }
-  }
-}
-```
-
-VyOS provider endpoints, certificate verification, default timeouts, and overwrite-on-create behavior are controlled by `fabric.defaults`. Manual binding overrides remain in provider blocks because they are provider implementation details rather than lab intent.
-
-The Proxmox providers currently point at:
-
-```text
-https://10.20.7.11:8006
-https://10.20.7.20:8006  # greatfox alias
-```
-
-## Required secrets
-
-- `vyos_key` — VyOS HTTPS API key.
-- `pve_api_token` — Proxmox API token for the primary cluster.
-- `gf_api_token` — Proxmox API token for the `greatfox` target.
-
-Do not commit real secret tfvars, `.terraform/`, provider binaries, or state files.
-
-## Formatting and validation
-
-Run formatting from the repository root:
-
-```bash
-tofu fmt -recursive
-```
-
-Run validation when provider plugins and required variable values are available:
-
-```bash
-tofu validate
-```
-
-If validation fails because local provider plugins, API secrets, or environment-specific files are unavailable, fix the environment or document the exact missing dependency before merging.
-
-## Operational assumptions
-
-This repo assumes:
-
-- VyOS nodes are reachable over HTTPS on the management network derived from `fabric.defaults.vyos_mgmt_prefix`.
-- VyOS API keys already exist.
-- Proxmox API tokens already exist.
-- SSH access to Proxmox uses `root` and `~/.ssh/id_rsa`.
-- The lab uses ULA IPv6 VTEP/overlay addressing under `fabric.defaults.ipv6_underlay_prefix` (`fd69:255:240::/64` by default).
-- MikroTik spines handle EVPN route-reflection outside this repo.
-
-## Useful checks
-
-On VyOS/FRR leaves:
-
-```bash
 show bgp summary
 show bgp ipv4 vpn
-show bgp vrf lylat_lan ipv4
 show bgp l2vpn evpn summary
 show bgp l2vpn evpn route
 show ip route vrf all
 monitor traffic interface any filter 'port not 22'
 ```
 
-On MikroTik spines:
+Useful MikroTik checks:
 
 ```routeros
 /routing/bgp/session/print detail
@@ -257,10 +153,4 @@ On MikroTik spines:
 /routing/bgp/advertisements/print detail
 ```
 
-## Status
-
-Current direction: MikroTik spines are used as EVPN route reflectors, and VyOS leaves peer EVPN overlay to the spine IPv6 loopbacks derived from the shared IPv6 underlay/VTEP prefix.
-External L3 connectivity is only working via:
-
-- IPv4-unicast per-VRF peering over IPv6 link-local.
-- IPv4 VPN with IPv4 point-to-point plus MPLS/LDPv4/OSPF underlay through a P router.
+Known limitation: EVPN host-route redistribution directly into the IPv4-VPN address family has not behaved reliably in this lab. The working direction is IPv4-VPN into VRF IPv4 unicast, then advertisement into EVPN. External connectivity currently uses per-VRF IPv4-unicast BGP over IPv6 link-local; an IPv4-VPN/MPLS/LDP/OSPF alternative has also been tested.
