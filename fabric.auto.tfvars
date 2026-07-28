@@ -63,6 +63,7 @@ fabric = {
       hypervisor_node    = "venom", id = 31, is_vm = true
       underlay_peer_vlan = 400
       underlay_bridges   = ["vmbr4001", "vmbr4002", "vmbr100"]
+      started = true
     }
     #fabric-2 = {
     #  hypervisor_node  = "eldarad", id = 32, is_vm = true
