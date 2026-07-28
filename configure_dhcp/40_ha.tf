@@ -1,8 +1,8 @@
 resource "vyos_service_dhcp_server_high_availability" "node" {
   mode           = var.dhcp.ha.mode
   status         = var.node.ha_role
-  source_address = local.source
-  remote         = local.remote
+  source_address = cidrhost(cidrsubnet(local.ha.subnet, 8, 10), var.node.id)
+  remote         = cidrhost(cidrsubnet(local.ha.subnet, 8, 10), var.nodes[local.peer_name].id)
   name           = local.peer_name
 
   lifecycle {

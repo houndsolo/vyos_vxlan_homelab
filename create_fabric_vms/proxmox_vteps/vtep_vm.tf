@@ -1,8 +1,8 @@
 resource "proxmox_virtual_environment_vm" "vyos_vxlan_vtep" {
   name            = var.host_node.hostname
   description     = "managed by opentofu"
-  tags            = local.tags
-  started         = local.started
+  tags            = coalesce(var.host_node.tags, ["opentofu", "debian", "vyos", "vxlan"])
+  started         = coalesce(var.host_node.started, false)
   keyboard_layout = "en-us"
   migrate         = false
   on_boot         = true
@@ -10,7 +10,7 @@ resource "proxmox_virtual_environment_vm" "vyos_vxlan_vtep" {
   stop_on_destroy = true
 
   node_name = var.host_node.hypervisor_node
-  vm_id     = local.vm_id
+  vm_id     = coalesce(var.host_node.vm_id, var.host_node.id + 700)
 
   agent {
     enabled = true
@@ -34,7 +34,7 @@ resource "proxmox_virtual_environment_vm" "vyos_vxlan_vtep" {
     user_data_file_id = var.vm_config.user_data_file_id
     ip_config {
       ipv4 {
-        address = local.vxlan_mgmt_ip_sub
+        address = "${coalesce(var.host_node.management_address, cidrhost(var.fabric_defaults.vyos_mgmt_prefix, var.host_node.id))}/${var.fabric_defaults.vyos_mgmt_cidr}"
       }
     }
   }
@@ -46,7 +46,7 @@ resource "proxmox_virtual_environment_vm" "vyos_vxlan_vtep" {
   }
 
   dynamic "network_device" {
-    for_each = local.network_bridges
+    for_each = coalesce(var.host_node.network_bridges, var.host_node.underlay_bridges, var.vm_config.default_underlay_bridges)
     content {
       disconnected = false
       bridge       = network_device.value

@@ -11,12 +11,11 @@ variable "dhcp" {
       l2vni = number
     })
     nodes = map(object({
-      id                  = number
-      hypervisor_node     = string
-      vm_id               = number
-      ha_role             = string
-      service_host_offset = number
-      configure           = optional(bool, true)
+      id              = number
+      hypervisor_node = string
+      vm_id           = number
+      ha_role         = string
+      configure       = optional(bool, true)
     }))
   })
 
@@ -44,10 +43,9 @@ variable "dhcp" {
       for name, node in var.dhcp.nodes :
       trimspace(name) != "" && trimspace(node.hypervisor_node) != "" &&
       !contains(["fichina", "fortuna", "eldarad"], node.hypervisor_node) &&
-      node.id > 0 && node.id == floor(node.id) && node.vm_id > 0 &&
-      node.service_host_offset > 0 && node.service_host_offset == floor(node.service_host_offset)
+      node.id > 0 && node.id < 255 && node.id == floor(node.id) && node.vm_id > 0
     ])
-    error_message = "DHCP node names/hosts must be valid, retired hosts are forbidden, and IDs/offsets must be positive integers."
+    error_message = "DHCP node names/hosts must be valid, retired hosts are forbidden, and IDs must be usable final-octet host numbers."
   }
   validation {
     condition = (

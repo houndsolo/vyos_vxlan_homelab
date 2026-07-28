@@ -11,10 +11,10 @@ The root configuration invokes three independent modules:
 | Module | Responsibility |
 | --- | --- |
 | `create_fabric_vms` | Creates virtual standard, border, extension, and `greatfox` leaves in Proxmox. Bare-metal inventory entries are skipped. |
-| `configure_fabric` | Configures the currently enabled border leaves and fabric-extension leaves through the VyOS API. |
+| `configure_fabric` | Configures the currently enabled border leaves through the VyOS API. |
 | `configure_dhcp` | Configures only the two dedicated VyOS Kea DHCP nodes: system identity/DNS, physical service interfaces, scopes, HA, and disabled IPv4 forwarding. |
 
-Standard leaves and the `greatfox` leaf have provider definitions and derived inventory, but their configuration module calls are currently disabled. The MikroTik spines are inventory/peering targets only and are configured outside this repository. This distinction is important: an apply does **not** configure every entry in `fabric`.
+Standard, fabric-extension, and `greatfox` leaves have provider definitions, but their configuration module calls are not enabled. The MikroTik spines are inventory/peering targets only and are configured outside this repository. This distinction is important: an apply does **not** configure every entry in `fabric`.
 
 ### Design at a glance
 

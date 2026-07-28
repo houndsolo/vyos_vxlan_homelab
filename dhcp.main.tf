@@ -19,7 +19,7 @@ locals {
   dhcp_scopes = { for vni, attachment in local.dhcp_attachments : vni => attachment if attachment.scope != null }
   dhcp_server_addresses = {
     for vni, attachment in local.dhcp_attachments : vni => {
-      for name, node in var.dhcp.nodes : name => cidrhost(attachment.subnet, node.service_host_offset)
+      for name, node in var.dhcp.nodes : name => cidrhost(cidrsubnet(attachment.subnet, 8, 10), node.id)
     }
   }
 }
