@@ -49,13 +49,13 @@ fabric = {
   }
 
   leaves = {
-    fichina = { hypervisor_node = "fichina", id = 11, is_vm = true }
-    macbeth = { hypervisor_node = "macbeth", id = 12, is_vm = true }
-    titania = { hypervisor_node = "titania", id = 13, is_vm = true }
-    zoness  = { hypervisor_node = "zoness", id = 14, is_vm = true }
-    fortuna = { hypervisor_node = "fortuna", id = 15, is_vm = true }
-    eldarad = { hypervisor_node = "eldarad", id = 16, is_vm = true }
-    venom   = { hypervisor_node = "venom", id = 17, is_vm = true }
+  #  fichina = { hypervisor_node = "fichina", id = 11, is_vm = true }
+  #  macbeth = { hypervisor_node = "macbeth", id = 12, is_vm = true }
+  #  titania = { hypervisor_node = "titania", id = 13, is_vm = true }
+  #  zoness  = { hypervisor_node = "zoness", id = 14, is_vm = true }
+  #  fortuna = { hypervisor_node = "fortuna", id = 15, is_vm = true }
+  #  eldarad = { hypervisor_node = "eldarad", id = 16, is_vm = true }
+  #  venom   = { hypervisor_node = "venom", id = 17, is_vm = true }
   }
 
   fabric_ext_leaves = {
