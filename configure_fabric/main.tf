@@ -1,5 +1,5 @@
 module "border_leaves" {
-  for_each  = var.fabric.border_leaves
+  for_each  = { for name, node in var.fabric.border_leaves : name => node if node.configure }
   source    = "./border_leaves"
   providers = { vyos = vyos.border_leaves[each.key] }
   node      = local.derived_fabric.border_leaves[each.key]
@@ -18,7 +18,7 @@ module "border_leaves" {
 }
 
 #module "fabric_ext_leaf_vms" {
-#  for_each  = var.fabric.fabric_ext_leaves
+#  for_each  = { for name, node in var.fabric.fabric_ext_leaves : name => node if node.configure }
 #  source    = "./pve_leaves"
 #  providers = { vyos = vyos.fabric_leaves[each.key] }
 #  node      = local.derived_fabric.fabric_leaves[each.key]

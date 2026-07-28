@@ -1,27 +1,25 @@
 locals {
-  vxlan_mgmt_cidr   = var.fabric_defaults.vyos_mgmt_cidr
-  vxlan_mgmt_ip     = cidrhost(var.fabric_defaults.vyos_mgmt_prefix, var.host_node.id)
-  vxlan_mgmt_ip_sub = "${local.vxlan_mgmt_ip}/${local.vxlan_mgmt_cidr}"
-
-  vtep_vm_id = "9700${var.host_node.id}"
-
-  vm_id = var.host_node.id + 700
-
-  underlay_bridges = coalesce(var.host_node.underlay_bridges, var.vm_config.default_underlay_bridges)
-
+  vxlan_mgmt_cidr    = var.fabric_defaults.vyos_mgmt_cidr
+  management_address = coalesce(var.host_node.management_address, cidrhost(var.fabric_defaults.vyos_mgmt_prefix, var.host_node.id))
+  vxlan_mgmt_ip_sub  = "${local.management_address}/${local.vxlan_mgmt_cidr}"
+  vm_id              = coalesce(var.host_node.vm_id, var.host_node.id + 700)
+  started            = coalesce(var.host_node.started, false)
+  tags               = coalesce(var.host_node.tags, ["opentofu", "debian", "vyos", "vxlan"])
+  network_bridges    = coalesce(var.host_node.network_bridges, var.host_node.underlay_bridges, var.vm_config.default_underlay_bridges)
 }
 
-variable "spines" {
-  type = number
-}
 variable "host_node" {
-  description = "this node"
+  description = "Role-independent VyOS VM identity and ordered network layout."
   type = object({
-    hostname         = string
-    hypervisor_node  = string
-    id               = number
-    is_vm            = optional(bool, true)
-    underlay_bridges = optional(list(string), null)
+    hostname           = string
+    hypervisor_node    = string
+    id                 = number
+    vm_id              = optional(number)
+    management_address = optional(string)
+    started            = optional(bool)
+    tags               = optional(list(string))
+    network_bridges    = optional(list(string))
+    underlay_bridges   = optional(list(string))
   })
 }
 

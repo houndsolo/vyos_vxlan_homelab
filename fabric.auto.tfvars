@@ -49,13 +49,13 @@ fabric = {
   }
 
   leaves = {
-  #  fichina = { hypervisor_node = "fichina", id = 11, is_vm = true }
-  #  macbeth = { hypervisor_node = "macbeth", id = 12, is_vm = true }
-  #  titania = { hypervisor_node = "titania", id = 13, is_vm = true }
-  #  zoness  = { hypervisor_node = "zoness", id = 14, is_vm = true }
-  #  fortuna = { hypervisor_node = "fortuna", id = 15, is_vm = true }
-  #  eldarad = { hypervisor_node = "eldarad", id = 16, is_vm = true }
-  #  venom   = { hypervisor_node = "venom", id = 17, is_vm = true }
+    #fichina = { hypervisor_node = "fichina", id = 11, is_vm = true }
+    #macbeth = { hypervisor_node = "macbeth", id = 12, is_vm = true }
+    #titania = { hypervisor_node = "titania", id = 13, is_vm = true }
+    #zoness  = { hypervisor_node = "zoness", id = 14, is_vm = true }
+    #fortuna = { hypervisor_node = "fortuna", id = 15, is_vm = true }
+    #eldarad = { hypervisor_node = "eldarad", id = 16, is_vm = true }
+    #venom   = { hypervisor_node = "venom", id = 17, is_vm = true }
   }
 
   fabric_ext_leaves = {
@@ -145,6 +145,13 @@ vnis = {
           advertise_default_gw = false
           advertise_svi_ip     = false
           export_ipv4_unicast  = true
+          dhcp = {
+            scope = {
+              ranges = {
+                0 = { start = "10.6.5.1", stop = "10.6.5.99" }
+              }
+            }
+          }
         }
         8 = {
           vni                  = 9008
@@ -155,6 +162,13 @@ vnis = {
           advertise_default_gw = false
           advertise_svi_ip     = false
           export_ipv4_unicast  = true
+          dhcp = {
+            scope = {
+              ranges = {
+                0 = { start = "10.8.5.1", stop = "10.8.5.99" }
+              }
+            }
+          }
         }
       }
     }
@@ -182,7 +196,7 @@ vnis = {
       ]
       #ext_l3_vlan = 69
 
-      l2 = {
+     l2 = {
         9 = {
           vni                  = 9009
           vlan_id              = 9
@@ -192,6 +206,13 @@ vnis = {
           advertise_default_gw = false
           advertise_svi_ip     = false
           export_ipv4_unicast  = true
+          dhcp = {
+            scope = {
+              ranges = {
+                0 = { start = "10.9.5.1", stop = "10.9.5.99" }
+              }
+            }
+          }
         }
       }
     }
@@ -230,6 +251,13 @@ vnis = {
           advertise_default_gw = false
           advertise_svi_ip     = false
           export_ipv4_unicast  = true
+          dhcp = {
+            scope = {
+              ranges = {
+                0 = { start = "10.2.5.1", stop = "10.2.5.99" }
+              }
+            }
+          }
         }
       }
     }

@@ -1,40 +1,61 @@
-variable "dhcp_nodes" {
-  description = "All VyOS nodes"
-
-  type = map(object({
-    name              = string
-    mgmt_addr         = string
-    mgmt_subnet       = string
-    node_id           = number
-    hypervisor_node   = string
-    hypervisor_vm_id  = number
-    dhcp_ha_role   = string
-    dhcp_ha_source = string
-    dhcp_ha_remote = string
-    dhcp_ha_peer_name = string
-  }))
-
-}
-
-variable "dns" {
-  description = "DNS configuration"
+variable "dhcp" {
+  description = "DHCP cluster defaults, HA attachment, and node inventory."
   type = object({
-    name_servers  = list(string)
-    domain_name   = string
-    domain_search = list(string)
-  })
-}
-
-variable "dhcp_scopes" {
-  type = map(object({
-    subnet         = string
-    default_router = string
-    name_server    = list(string)
-    domain_name = string
-
-    range = map(object({
-      start = string
-      stop  = string
+    defaults = object({
+      client_name_servers = list(string)
+      lease_seconds       = number
+      authoritative       = bool
+    })
+    ha = object({
+      mode  = string
+      l2vni = number
+    })
+    nodes = map(object({
+      id                  = number
+      hypervisor_node     = string
+      vm_id               = number
+      ha_role             = string
+      service_host_offset = number
+      configure           = optional(bool, true)
     }))
-  }))
+  })
+
+  validation {
+    condition     = length(var.dhcp.nodes) == 2
+    error_message = "DHCP HA requires exactly two nodes."
+  }
+  validation {
+    condition = (
+      length([for node in values(var.dhcp.nodes) : node if node.ha_role == "primary"]) == 1 &&
+      length([for node in values(var.dhcp.nodes) : node if node.ha_role == "secondary"]) == 1
+    )
+    error_message = "DHCP HA requires exactly one primary and one secondary node."
+  }
+  validation {
+    condition     = length(distinct([for node in values(var.dhcp.nodes) : node.id])) == length(var.dhcp.nodes)
+    error_message = "DHCP node IDs must be unique."
+  }
+  validation {
+    condition     = length(distinct([for node in values(var.dhcp.nodes) : node.vm_id])) == length(var.dhcp.nodes)
+    error_message = "DHCP VM IDs must be unique."
+  }
+  validation {
+    condition = alltrue([
+      for name, node in var.dhcp.nodes :
+      trimspace(name) != "" && trimspace(node.hypervisor_node) != "" &&
+      !contains(["fichina", "fortuna", "eldarad"], node.hypervisor_node) &&
+      node.id > 0 && node.id == floor(node.id) && node.vm_id > 0 &&
+      node.service_host_offset > 0 && node.service_host_offset == floor(node.service_host_offset)
+    ])
+    error_message = "DHCP node names/hosts must be valid, retired hosts are forbidden, and IDs/offsets must be positive integers."
+  }
+  validation {
+    condition = (
+      trimspace(var.dhcp.ha.mode) != "" &&
+      var.dhcp.ha.l2vni >= 1 && var.dhcp.ha.l2vni <= 16777215 &&
+      var.dhcp.defaults.lease_seconds > 0 &&
+      length(var.dhcp.defaults.client_name_servers) > 0
+    )
+    error_message = "DHCP mode, HA VNI, lease, and client DNS defaults must be valid."
+  }
 }

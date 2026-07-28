@@ -11,8 +11,10 @@ module "configure_fabric" {
 module "create_fabric_vms" {
   source = "./create_fabric_vms"
 
-  fabric          = var.fabric
-  pve_api_token   = var.pve_api_token
-  gf_api_token    = var.gf_api_token
-  proxmox_vtep_vm = var.proxmox_vtep_vm
+  fabric           = var.fabric
+  dhcp             = var.dhcp
+  dhcp_attachments = local.dhcp_attachments
+  pve_api_token    = var.pve_api_token
+  gf_api_token     = var.gf_api_token
+  proxmox_vtep_vm  = var.proxmox_vtep_vm
 }

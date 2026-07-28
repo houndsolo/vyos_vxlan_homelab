@@ -56,6 +56,7 @@ variable "fabric" {
     }))
     fabric_ext_leaves = map(object({
       id                 = number
+      configure          = optional(bool, true)
       hypervisor_node    = optional(string, null)
       is_vm              = optional(bool, true)
       underlay_bridges   = optional(list(string), null)
@@ -63,6 +64,7 @@ variable "fabric" {
     }))
     border_leaves = map(object({
       id                 = number
+      configure          = optional(bool, true)
       hypervisor_node    = optional(string, null)
       is_vm              = optional(bool, true)
       underlay_bridges   = optional(list(string), null)
@@ -190,6 +192,19 @@ variable "vnis" {
         advertise_default_gw = optional(bool, false)
         advertise_svi_ip     = optional(bool, false)
         export_ipv4_unicast  = optional(bool, false)
+        dhcp = optional(object({
+          scope = optional(object({
+            ranges = map(object({
+              start = string
+              stop  = string
+            }))
+            name_servers  = optional(list(string))
+            domain_name   = optional(string)
+            domain_search = optional(list(string))
+            lease_seconds = optional(number)
+            authoritative = optional(bool)
+          }))
+        }))
       })), {})
     }))
   })

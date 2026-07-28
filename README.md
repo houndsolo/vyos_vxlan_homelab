@@ -6,12 +6,13 @@ OpenTofu configuration for a small VyOS/FRR EVPN-VXLAN fabric hosted primarily o
 
 ## What is managed
 
-The root configuration invokes two independent modules:
+The root configuration invokes three independent modules:
 
 | Module | Responsibility |
 | --- | --- |
 | `create_fabric_vms` | Creates virtual standard, border, extension, and `greatfox` leaves in Proxmox. Bare-metal inventory entries are skipped. |
 | `configure_fabric` | Configures the currently enabled border leaves and fabric-extension leaves through the VyOS API. |
+| `configure_dhcp` | Configures only the two dedicated VyOS Kea DHCP nodes: system identity/DNS, physical service interfaces, scopes, HA, and disabled IPv4 forwarding. |
 
 Standard leaves and the `greatfox` leaf have provider definitions and derived inventory, but their configuration module calls are currently disabled. The MikroTik spines are inventory/peering targets only and are configured outside this repository. This distinction is important: an apply does **not** configure every entry in `fabric`.
 
@@ -36,12 +37,14 @@ See [`configure_fabric/README.md`](configure_fabric/README.md) for module owners
 ├── versions.tf                  # provider constraints
 ├── fabric.auto.tfvars           # nodes, fabric defaults, VRFs, and VNIs
 ├── proxmox_vm.auto.tfvars       # VM sizing, storage, bridges, and DNS
+├── dhcp.auto.tfvars             # DHCP defaults, HA selection, and node inventory
 ├── external_l3.auto.tfvars      # border-leaf upstream settings
 ├── configure_fabric/
 │   ├── leaf_common/             # system, underlay, and BGP EVPN
 │   ├── leaf_l2_common/          # VXLAN devices, bridges, and SVIs
 │   ├── pve_leaves/              # ordinary/extension leaf role
 │   └── border_leaves/           # border policy and external routing
+├── configure_dhcp/              # isolated VyOS DHCP system/interface/Kea/HA configuration
 └── create_fabric_vms/
     └── proxmox_vteps/           # one VyOS VM resource
 ```
@@ -116,6 +119,10 @@ leaves = {
 
 Node IDs must therefore be unique and fit all configured CIDR ranges. A spine needs an `id` and `uplink_if`; its overlay address is derived from its ID.
 
+For a configured border or fabric-extension leaf, set `configure = false` and
+apply once before removing its inventory entry. This retains the dynamic VyOS
+provider while OpenTofu removes that node's configuration resources.
+
 ### VRFs and VNIs
 
 Edit `vnis.l3` in `fabric.auto.tfvars`. Each L3 entry describes a VRF, table, L3VNI, EVPN route targets, optional VPN import/export behavior, and optional `ext_l3_vlan`. Nested `l2` entries describe VLAN/VNI pairs, anycast gateways/MACs, and advertisement/export switches.
@@ -131,6 +138,50 @@ Useful conventions:
 ### VM defaults
 
 Edit `proxmox_vm.auto.tfvars` for image, storage, cloud-init, management/underlay bridges, CPU, memory, and disk defaults. Per-node underlay bridges remain in `fabric.auto.tfvars`.
+
+### DHCP architecture
+
+DHCP intent lives with each L2VNI rather than in a duplicate scope map. The outer
+`dhcp` object attaches both DHCP VMs to that L2VNI. Attachments are ordered by
+VNI, and VNI 900X uses the existing Proxmox SDN bridge `vnetX`. An optional nested `scope` enables
+Kea service on that interface. The configuration derives the normalized subnet,
+gateway, Kea subnet ID, server addresses, DNS/domain defaults, interface name,
+and bridge name from the L2VNI, root DNS, and DHCP cluster objects.
+
+The fixed layout is:
+
+| Interface | Existing Proxmox bridge | Function | Derived node addresses |
+| --- | --- | --- | --- |
+| `eth0` | management bridge from `proxmox_vm.auto.tfvars` | VyOS management/API | management prefix host IDs 251 and 252 |
+| `eth1` | `vnet6` | HA only (no client scope) | `10.6.10.251/16`, `10.6.10.252/16` |
+| `eth2` | `vnet8` | L2VNI 9008 scope | `10.8.10.251/16`, `10.8.10.252/16` |
+| `eth3` | `vnet9` | L2VNI 9009 scope | `10.9.10.251/16`, `10.9.10.252/16` |
+
+This dedicated-interface design creates no VLAN subinterfaces and contains no
+separately maintained NIC indexes. `vnet6`, `vnet8`, and `vnet9` must
+already exist on both `titania` and `zoness`; this configuration deliberately
+does not manage Proxmox Linux bridges. The HA peers communicate over L2VNI 9006
+and require TCP port 647 between `10.6.10.251` and `10.6.10.252`.
+
+IPv4 forwarding is disabled on both DHCP nodes. Because their physical NICs are
+directly attached to L2VNIs in different fabric VRFs, forwarding could otherwise
+turn a DHCP server into an unintended inter-VRF transit router.
+
+Before removing a DHCP node from the inventory, set its optional `configure`
+field to `false` and apply once. This destroys its VyOS configuration while its
+dynamic provider instance still exists; the inventory entry can then be removed
+in a subsequent change without orphaning provider-managed resources.
+
+Useful DHCP checks on either VyOS node:
+
+```text
+show configuration commands | match 'service dhcp-server'
+show dhcp server leases
+show dhcp server statistics
+show log | match 'kea|dhcp'
+sudo journalctl -u kea-dhcp4-server --since today
+sudo ss -ntp | grep ':647'
+```
 
 ## Operations and troubleshooting
 

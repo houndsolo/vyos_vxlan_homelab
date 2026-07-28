@@ -1,8 +1,8 @@
 resource "proxmox_virtual_environment_vm" "vyos_vxlan_vtep" {
   name            = var.host_node.hostname
   description     = "managed by opentofu"
-  tags            = ["opentofu", "debian", "vyos", "vxlan"]
-  started         = false
+  tags            = local.tags
+  started         = local.started
   keyboard_layout = "en-us"
   migrate         = false
   on_boot         = true
@@ -46,7 +46,7 @@ resource "proxmox_virtual_environment_vm" "vyos_vxlan_vtep" {
   }
 
   dynamic "network_device" {
-    for_each = local.underlay_bridges
+    for_each = local.network_bridges
     content {
       disconnected = false
       bridge       = network_device.value
