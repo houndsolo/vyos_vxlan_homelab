@@ -1,28 +1,47 @@
-module "create_vyos_vms" {
-  for_each = merge(
-    #{ for name, leaf in var.fabric.leaves : name => merge(leaf, { hostname = "vtep-${name}" }) if leaf.is_vm },
-    #{ for name, leaf in var.fabric.border_leaves : name => merge(leaf, { hostname = "vtep-border-${leaf.id}" }) if leaf.is_vm },
-    { for name, leaf in var.fabric.fabric_ext_leaves : name => merge(leaf, { hostname = "vtep-fabric-ext-${leaf.id}" }) if leaf.is_vm },
-  )
+// Preserve the addresses created by the former combined module calls while
+// giving every VM role an independently selectable module instance.
+moved {
+  from = module.create_vyos_vms
+  to   = module.create_fabric_ext_leaf_vms
+}
+
+moved {
+  from = module.create_vyos_vms_greatfox
+  to   = module.create_greatfox_leaf_vms
+}
+
+module "create_leaf_vms" {
+  for_each        = { for name, leaf in var.fabric.leaves : name => merge(leaf, { hostname = "vtep-${name}" }) if leaf.is_vm }
   source          = "./proxmox_vteps"
   host_node       = each.value
   vm_config       = var.proxmox_vtep_vm
   fabric_defaults = var.fabric.defaults
 }
 
-module "create_vyos_vms_greatfox" {
-  for_each = {
-    for name, leaf in var.fabric.leaves_greatfox :
-    name => merge(leaf, { hostname = "vtep-${name}" }) if leaf.is_vm
-  }
+module "create_border_leaf_vms" {
+  for_each        = { for name, leaf in var.fabric.border_leaves : name => merge(leaf, { hostname = "vtep-border-${leaf.id}" }) if leaf.is_vm }
+  source          = "./proxmox_vteps"
+  host_node       = each.value
+  vm_config       = var.proxmox_vtep_vm
+  fabric_defaults = var.fabric.defaults
+}
+
+module "create_fabric_ext_leaf_vms" {
+  for_each        = { for name, leaf in var.fabric.fabric_ext_leaves : name => merge(leaf, { hostname = "vtep-fabric-ext-${leaf.id}" }) if leaf.is_vm }
+  source          = "./proxmox_vteps"
+  host_node       = each.value
+  vm_config       = var.proxmox_vtep_vm
+  fabric_defaults = var.fabric.defaults
+}
+
+module "create_greatfox_leaf_vms" {
+  for_each        = { for name, leaf in var.fabric.leaves_greatfox : name => merge(leaf, { hostname = "vtep-${name}" }) if leaf.is_vm }
   source          = "./proxmox_vteps"
   host_node       = each.value
   vm_config       = var.proxmox_vtep_vm
   fabric_defaults = var.fabric.defaults
 
-  providers = {
-    proxmox = proxmox.greatfox
-  }
+  providers = { proxmox = proxmox.greatfox }
 }
 
 module "create_dhcp_vms" {
@@ -35,7 +54,7 @@ module "create_dhcp_vms" {
     hypervisor_node    = each.value.hypervisor_node
     vm_id              = each.value.vm_id
     management_address = cidrhost(var.fabric.defaults.vyos_mgmt_prefix, each.value.id)
-    started            = true
+    started            = each.value.started
     tags               = ["opentofu", "debian", "vyos", "dhcp"]
     network_bridges    = [for vni in sort(keys(var.dhcp_attachments)) : var.dhcp_attachments[vni].bridge]
   }

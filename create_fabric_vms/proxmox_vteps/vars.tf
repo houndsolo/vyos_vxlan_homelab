@@ -6,7 +6,7 @@ variable "host_node" {
     id                 = number
     vm_id              = optional(number)
     management_address = optional(string)
-    started            = optional(bool)
+    started            = optional(bool, false)
     tags               = optional(list(string))
     network_bridges    = optional(list(string))
     underlay_bridges   = optional(list(string))

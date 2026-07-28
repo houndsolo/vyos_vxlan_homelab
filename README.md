@@ -114,6 +114,9 @@ leaves = {
 - `id` drives VM ID (`700 + id`), BGP local AS, loopback addresses, and management address.
 - `hypervisor_node` is required for VMs.
 - `is_vm = false` prevents VM creation.
+- `started = true` powers the VM on. It defaults to `false`, allowing each leaf,
+  border leaf, fabric-extension leaf, `greatfox` leaf, or DHCP VM to be created
+  without automatically starting it.
 - `underlay_bridges` overrides the default Proxmox bridge list.
 - `underlay_peer_vlan` is used by fabric-extension underlay interfaces.
 
@@ -171,6 +174,10 @@ Before removing a DHCP node from the inventory, set its optional `configure`
 field to `false` and apply once. This destroys its VyOS configuration while its
 dynamic provider instance still exists; the inventory entry can then be removed
 in a subsequent change without orphaning provider-managed resources.
+
+Set the optional `started` field independently on each DHCP node to control its
+desired Proxmox power state. `started` controls only VM power; `configure`
+controls whether OpenTofu manages the node's VyOS configuration.
 
 Useful DHCP checks on either VyOS node:
 

@@ -16,6 +16,7 @@ variable "dhcp" {
       vm_id           = number
       ha_role         = string
       configure       = optional(bool, true)
+      started         = optional(bool, false)
     }))
   })
 

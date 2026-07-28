@@ -51,6 +51,7 @@ variable "fabric" {
       id                 = number
       hypervisor_node    = optional(string, null)
       is_vm              = optional(bool, true)
+      started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
       underlay_peer_vlan = optional(number, null)
     }))
@@ -58,6 +59,7 @@ variable "fabric" {
       id                 = number
       hypervisor_node    = optional(string, null)
       is_vm              = optional(bool, true)
+      started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
       underlay_peer_vlan = optional(number, null)
     }))
@@ -65,6 +67,7 @@ variable "fabric" {
       id                 = number
       hypervisor_node    = optional(string, null)
       is_vm              = optional(bool, true)
+      started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
       underlay_peer_vlan = optional(number, null)
     }))
@@ -72,6 +75,7 @@ variable "fabric" {
       id                 = number
       hypervisor_node    = optional(string, null)
       is_vm              = optional(bool, true)
+      started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
       underlay_peer_vlan = optional(number, null)
     }))

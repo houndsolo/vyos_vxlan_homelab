@@ -16,12 +16,14 @@ dhcp = {
       hypervisor_node = "titania"
       vm_id           = 771
       ha_role         = "primary"
+      started         = true
     }
     vyos-DHCP-2 = {
       id              = 252
       hypervisor_node = "zoness"
       vm_id           = 772
       ha_role         = "secondary"
+      started         = true
     }
   }
 }

@@ -28,7 +28,7 @@ module "fabric_ext_leaf_vms" {
   vnis      = var.vnis
 
   vxlan                  = var.fabric.vxlan
-  spines                         = local.spines
+  spines                 = local.spines
   l2_vnis                = local.l2_vnis
   ipv4_vpn_export_policy = local.ipv4_vpn_export_policy
 }

@@ -2,7 +2,7 @@ resource "proxmox_virtual_environment_vm" "vyos_vxlan_vtep" {
   name            = var.host_node.hostname
   description     = "managed by opentofu"
   tags            = coalesce(var.host_node.tags, ["opentofu", "debian", "vyos", "vxlan"])
-  started         = coalesce(var.host_node.started, false)
+  started         = var.host_node.started
   keyboard_layout = "en-us"
   migrate         = false
   on_boot         = true

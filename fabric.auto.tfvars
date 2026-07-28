@@ -63,7 +63,7 @@ fabric = {
       hypervisor_node    = "venom", id = 31, is_vm = true
       underlay_peer_vlan = 400
       underlay_bridges   = ["vmbr4001", "vmbr4002", "vmbr100"]
-      started = true
+      started            = true
     }
     #fabric-2 = {
     #  hypervisor_node  = "eldarad", id = 32, is_vm = true
@@ -195,9 +195,8 @@ vnis = {
       evpn_rt_exports = [
         "700:6900",
       ]
-      #ext_l3_vlan = 69
 
-     l2 = {
+      l2 = {
         9 = {
           vni                  = 9009
           vlan_id              = 9
@@ -211,6 +210,23 @@ vnis = {
             scope = {
               ranges = {
                 0 = { start = "10.9.5.1", stop = "10.9.5.99" }
+              }
+            }
+          }
+        }
+        10 = {
+          vni                  = 9010
+          vlan_id              = 10
+          anycast_gw_ip        = "10.10.0.5"
+          anycast_gw_cidr      = 16
+          anycast_mac          = "0e:00:00:10:00:10"
+          advertise_default_gw = false
+          advertise_svi_ip     = false
+          export_ipv4_unicast  = true
+          dhcp = {
+            scope = {
+              ranges = {
+                0 = { start = "10.10.5.1", stop = "10.10.5.99" }
               }
             }
           }
@@ -237,7 +253,6 @@ vnis = {
       evpn_rt_exports = [
         "700:6200",
       ]
-      #ext_l3_vlan = 62
       redistribute_ipv4 = {
         connected = {}
       }
