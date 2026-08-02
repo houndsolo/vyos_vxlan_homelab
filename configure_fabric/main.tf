@@ -19,13 +19,14 @@ module "border_leaves" {
 
 module "fabric_ext_leaf_vms" {
   for_each  = { for name, node in var.fabric.fabric_ext_leaves : name => node if node.configure }
-  source    = "./pve_leaves"
+  source    = "./fabric_leaves"
   providers = { vyos = vyos.fabric_leaves[each.key] }
   node      = local.fabric_leaves[each.key]
   dns       = var.dns
 
   bgp_l2vpn = var.fabric.bgp_l2vpn
   vnis      = var.vnis
+  external_l2 = var.external_l2
 
   vxlan                  = var.fabric.vxlan
   spines                 = local.spines

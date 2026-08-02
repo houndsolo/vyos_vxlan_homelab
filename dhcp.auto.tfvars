@@ -1,6 +1,6 @@
 dhcp = {
   defaults = {
-    client_name_servers = ["10.8.6.9"]
+    client_name_servers = ["10.8.53.1", "10.8.53.2"]
     lease_seconds       = 86400
     authoritative       = true
   }

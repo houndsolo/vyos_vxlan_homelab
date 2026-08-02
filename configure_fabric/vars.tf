@@ -92,8 +92,6 @@ locals {
   }
 }
 
-variable "fabric" {
-}
 
 variable "dns" {
   description = "DNS configuration"
@@ -104,8 +102,6 @@ variable "dns" {
   })
 }
 
-variable "vnis" {
-}
 
 variable "vyos_key" {
   type      = string
@@ -120,3 +116,6 @@ variable "external_l3" {
     remote_asn      = number
   })
 }
+variable "external_l2" {}
+variable "vnis" {}
+variable "fabric" {}

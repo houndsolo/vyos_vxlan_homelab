@@ -260,6 +260,22 @@ variable "external_l3" {
   }
 }
 
+variable "external_l2" {
+  description = "Border-leaf external L2 connectivity settings."
+  type = object({
+    bond_slave     = string
+    bond_interface = string
+    bond_mode      = string
+    lacp_rate      = string
+
+    esi = object({
+      esi_id           = number
+      esi_system_mac   = string
+      esi_df_pref_base = number
+    })
+  })
+}
+
 variable "proxmox_vtep_vm" {
   description = "Proxmox VM settings for VyOS VTEP instances."
   type = object({

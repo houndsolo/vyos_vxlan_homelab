@@ -50,7 +50,7 @@ module "configure_dhcp" {
   dns         = var.dns
 
   providers  = { vyos = vyos.dhcp_nodes[each.key] }
-  depends_on = [module.create_fabric_vms]
+  #  depends_on = [module.create_fabric_vms]
 }
 
 check "dhcp_attachment_invariants" {
