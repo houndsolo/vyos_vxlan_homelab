@@ -1,4 +1,3 @@
-
 resource "vyos_policy_prefix_list" "create_prefix_list" {
   for_each = var.ipv4_vpn_export_policy
 

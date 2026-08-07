@@ -173,6 +173,7 @@ variable "vnis" {
       vni                              = number
       vrf                              = string
       vrf_table                        = number
+      vlan_id                             = number
       ipv4_rt_imports                  = optional(string, null)
       ipv4_rt_exports                  = optional(string, null)
       border_leaf_ipv4_rt_imports      = optional(string, null)
@@ -181,8 +182,9 @@ variable "vnis" {
       border_leaf_ipv4_vrf_imports     = optional(list(string), null)
       evpn_rt_imports                  = optional(list(string), [])
       evpn_rt_exports                  = optional(list(string), [])
-      ext_l3_vlan                      = optional(number)
+      ext_l3                           = optional(bool, false)
       export_vpn_ipv4                  = optional(bool, false)
+        anycast_mac          = string
       redistribute_ipv4 = optional(object({
         connected = optional(object({}), null)
         static    = optional(object({}), null)

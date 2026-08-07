@@ -31,7 +31,7 @@ fabric = {
     enable_directed_broadcast = false
     enable_proxy_arp          = false
     proxy_arp_pvlan           = false
-    external                  = false
+    external                  = true
     neighbor_suppress         = false
     nolearning                = true
     vni_filter                = false
@@ -66,7 +66,7 @@ fabric = {
     #  started            = true
     #}
     fabric-2 = {
-      id = 42
+      id    = 42
       is_vm = false
     }
 
@@ -93,14 +93,17 @@ vnis = {
   l3 = {
 
     6666 = {
+      vlan_id      = 66
       vni       = 6666
       vrf       = "lylat_external"
       vrf_table = 6666
+      anycast_mac          = "bc:24:11:00:66:66"
       #ipv4_rt_imports = "700:6200 700:6900"
       #ipv4_rt_exports = "700:6600"
       #border_leaf_ipv4_rt_imports = "420:1337 420:666"
       #border_leaf_ipv4_vrf_imports = [
       #]
+      ext_l3                           = true
       border_leaf_ipv4_rt_imports      = "700:6900 700:6600 700:6200"
       border_leaf_ipv4_rt_exports      = "700:6666"
       border_leaf_ipv4_vpn_import_bool = true
@@ -111,10 +114,10 @@ vnis = {
       evpn_rt_exports = [
         "700:6666",
       ]
-      ext_l3_vlan = 66
     }
 
     6600 = {
+      vlan_id      = 1000
       vni       = 6600
       vrf       = "lylat_service"
       vrf_table = 1000
@@ -127,6 +130,7 @@ vnis = {
       border_leaf_ipv4_rt_exports      = "700:6600"
       border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4                  = true
+      anycast_mac          = "bc:24:11:00:66:00"
       evpn_rt_imports = [
         "700:6600",
       ]
@@ -175,9 +179,11 @@ vnis = {
       }
     }
     6900 = {
+      vlan_id      = 69
       vni       = 6900
       vrf       = "lylat_lan"
       vrf_table = 1337
+      anycast_mac          = "bc:24:11:00:69:00"
       #ipv4_rt_imports = "700:6600"
       #ipv4_rt_exports = "700:6900"
       #border_leaf_ipv4_vrf_imports = [
@@ -236,6 +242,7 @@ vnis = {
     }
 
     6200 = {
+      vlan_id      = 62
       vni       = 6200
       vrf       = "lylat_infra"
       vrf_table = 700
@@ -246,6 +253,7 @@ vnis = {
       #]
       border_leaf_ipv4_rt_imports      = "700:6666 700:6600 700:6900"
       border_leaf_ipv4_rt_exports      = "700:6200"
+      anycast_mac          = "bc:24:11:00:62:00"
       border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4                  = true
       evpn_rt_imports = [

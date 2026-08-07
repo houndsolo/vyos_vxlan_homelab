@@ -24,8 +24,8 @@ module "fabric_ext_leaf_vms" {
   node      = local.fabric_leaves[each.key]
   dns       = var.dns
 
-  bgp_l2vpn = var.fabric.bgp_l2vpn
-  vnis      = var.vnis
+  bgp_l2vpn   = var.fabric.bgp_l2vpn
+  vnis        = var.vnis
   external_l2 = var.external_l2
 
   vxlan                  = var.fabric.vxlan

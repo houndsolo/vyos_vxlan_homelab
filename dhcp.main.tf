@@ -49,7 +49,7 @@ module "configure_dhcp" {
   attachments = local.dhcp_attachments
   dns         = var.dns
 
-  providers  = { vyos = vyos.dhcp_nodes[each.key] }
+  providers = { vyos = vyos.dhcp_nodes[each.key] }
   #  depends_on = [module.create_fabric_vms]
 }
 
