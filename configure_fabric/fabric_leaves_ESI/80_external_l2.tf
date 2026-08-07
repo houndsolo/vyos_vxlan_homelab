@@ -19,12 +19,12 @@ resource "vyos_interfaces_bonding" "l2out_esi_bond" {
   }
   lacp_rate = var.external_l2.lacp_rate
   mtu         = var.vxlan.mtu
-  #evpn = {
-  #  uplink = true
-  #  es_id = var.external_l2.esi.esi_id
-  #  es_sys_mac = var.external_l2.esi.esi_system_mac
-  #  es_df_pref = var.external_l2.esi.esi_df_pref_base + var.node.id
-  #}
+  evpn = {
+    uplink = true
+    es_id = var.external_l2.esi.esi_id
+    es_sys_mac = var.external_l2.esi.esi_system_mac
+    es_df_pref = var.external_l2.esi.esi_df_pref_base + var.node.id
+  }
 }
 
 resource "vyos_interfaces_bonding_vif" "l2out_esi_bond_vifs" {
