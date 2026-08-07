@@ -19,7 +19,7 @@ module "border_leaves" {
 
 module "fabric_ext_leaf_vms" {
   for_each  = { for name, node in var.fabric.fabric_ext_leaves : name => node if node.configure }
-  source    = "./fabric_leaves"
+  source    = "./fabric_leaves_trunk"
   providers = { vyos = vyos.fabric_leaves[each.key] }
   node      = local.fabric_leaves[each.key]
   dns       = var.dns

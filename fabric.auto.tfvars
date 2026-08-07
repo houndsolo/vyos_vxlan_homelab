@@ -59,17 +59,15 @@ fabric = {
   }
 
   fabric_ext_leaves = {
-    fabric-1 = {
-      hypervisor_node    = "eldarad", id = 31, is_vm = true
-      underlay_peer_vlan = 400
-      underlay_bridges   = ["vmbr4001", "vmbr4002", "vmbr100"]
-      started            = true
-    }
+    #fabric-1 = {
+    #  hypervisor_node    = "eldarad", id = 41, is_vm = true
+    #  underlay_peer_vlan = 400
+    #  underlay_bridges   = ["vmbr4001", "vmbr4002", "vmbr100"]
+    #  started            = true
+    #}
     fabric-2 = {
-      hypervisor_node    = "venom", id = 32, is_vm = true
-      underlay_peer_vlan = 400
-      underlay_bridges   = ["vmbr4001", "vmbr4002", "vmbr100"]
-      started            = true
+      id = 42
+      is_vm = false
     }
 
   }
@@ -145,7 +143,7 @@ vnis = {
           vlan_id              = 6
           anycast_gw_ip        = "10.6.0.5"
           anycast_gw_cidr      = 16
-          anycast_mac          = "bc:24:00:00:66:00"
+          anycast_mac          = "bc:24:11:00:66:00"
           advertise_default_gw = false
           advertise_svi_ip     = false
           export_ipv4_unicast  = true
@@ -162,7 +160,7 @@ vnis = {
           vlan_id              = 8
           anycast_gw_ip        = "10.8.0.5"
           anycast_gw_cidr      = 16
-          anycast_mac          = "bc:24:00:00:66:00"
+          anycast_mac          = "bc:24:11:00:66:00"
           advertise_default_gw = false
           advertise_svi_ip     = false
           export_ipv4_unicast  = true
@@ -205,7 +203,7 @@ vnis = {
           vlan_id              = 9
           anycast_gw_ip        = "10.9.0.5"
           anycast_gw_cidr      = 16
-          anycast_mac          = "bc:24:00:00:69:00"
+          anycast_mac          = "bc:24:11:00:69:00"
           advertise_default_gw = false
           advertise_svi_ip     = false
           export_ipv4_unicast  = true
@@ -266,7 +264,7 @@ vnis = {
           vlan_id              = 2
           anycast_gw_ip        = "10.2.0.5"
           anycast_gw_cidr      = 16
-          anycast_mac          = "bc:24:00:00:62:00"
+          anycast_mac          = "bc:24:11:00:62:00"
           advertise_default_gw = false
           advertise_svi_ip     = false
           export_ipv4_unicast  = true

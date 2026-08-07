@@ -1,0 +1,17 @@
+provider_installation {
+  filesystem_mirror {
+    path = "/home/mechanic/.terraform.d/plugins"
+
+    include = [
+      "registry.terraform.io/echowings/vyos-rolling",
+      "local/mechanic/proxmox",
+    ]
+  }
+
+  direct {
+    exclude = [
+      "registry.terraform.io/echowings/vyos-rolling",
+      "local/mechanic/proxmox",
+    ]
+  }
+}

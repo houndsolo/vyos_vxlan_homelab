@@ -29,6 +29,7 @@ resource "vyos_interfaces_bridge_member_interface" "brN_vxlanN_l2" {
     vyos_interfaces_bridge.vxlan_bridge_L3
   ]
   for_each = var.l2_vnis
+  disable_learning = true
   identifier = {
     bridge    = "br${each.value.vni}"
     interface = "vxlan${each.value.vni}"
@@ -41,6 +42,7 @@ resource "vyos_interfaces_bridge_member_interface" "brN_vxlanN_l3" {
     vyos_interfaces_bridge.vxlan_bridge_L3
   ]
   for_each = var.vnis.l3
+  disable_learning = true
   identifier = {
     bridge    = "br${each.value.vni}"
     interface = "vxlan${each.value.vni}"

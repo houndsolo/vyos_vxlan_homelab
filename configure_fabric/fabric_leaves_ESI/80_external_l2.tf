@@ -53,3 +53,4 @@ resource "vyos_interfaces_bridge_member_interface" "br0_bond0" {
     interface = "${var.external_l2.bond_interface}.${each.value.l2_key}"
   }
 }
+
