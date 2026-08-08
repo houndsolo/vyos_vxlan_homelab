@@ -30,6 +30,20 @@ locals {
       border_leaf_id_1_2     = node.id - 17
     })
   }
+  greatfox_leaves = {
+    for node_name, node in var.fabric.leaves_greatfox :
+    node_name => merge(node, {
+      hostname               = "LEAF-${node.id}"
+      l2_svd                 = var.fabric.defaults.l2_service_bridge_id
+      underlay_local_as      = var.fabric.defaults.underlay_local_as_base + node.id
+      vxlan_loopback_net     = cidrhost(var.fabric.defaults.ipv4_loopback_prefix, node.id)
+      vxlan_loopback         = "${cidrhost(var.fabric.defaults.ipv4_loopback_prefix, node.id)}/32"
+      vxlan_loopback_v6_net  = cidrhost(var.fabric.defaults.ipv6_underlay_prefix, parseint(tostring(node.id), 16))
+      vxlan_loopback_v6      = "${cidrhost(var.fabric.defaults.ipv6_underlay_prefix, parseint(tostring(node.id), 16))}/128"
+      bgp_system_as          = var.fabric.defaults.bgp_system_as
+      vxlan_source_interface = var.fabric.defaults.vxlan_source_interface
+    })
+  }
 
   spines = {
     for node_name, node in var.fabric.spines :

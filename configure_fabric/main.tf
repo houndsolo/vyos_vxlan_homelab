@@ -33,3 +33,19 @@ module "fabric_ext_leaf_vms" {
   l2_vnis                = local.l2_vnis
   ipv4_vpn_export_policy = local.ipv4_vpn_export_policy
 }
+
+module "greatfox_leaf_vms" {
+  for_each  = { for name, node in var.fabric.leaves_greatfox : name => node if node.configure }
+  source    = "./pve_leaves"
+  providers = { vyos = vyos.greatfox }
+  node      = local.greatfox_leaves[each.key]
+  dns       = var.dns
+
+  bgp_l2vpn   = var.fabric.bgp_l2vpn
+  vnis        = var.vnis
+
+  vxlan                  = var.fabric.vxlan
+  spines                 = local.spines
+  l2_vnis                = local.l2_vnis
+  ipv4_vpn_export_policy = local.ipv4_vpn_export_policy
+}

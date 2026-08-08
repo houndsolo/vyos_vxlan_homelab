@@ -84,7 +84,7 @@ fabric = {
       hypervisor_node = "greatfox"
       id              = 20
       is_vm           = true
-      #underlay_bridges = ["vmbr4001", "vmbr4002", "vmbr4000"]
+     started            = true
     }
   }
 }
