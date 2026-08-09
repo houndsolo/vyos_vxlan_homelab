@@ -32,6 +32,7 @@ module "fabric_ext_leaf_vms" {
   spines                 = local.spines
   l2_vnis                = local.l2_vnis
   ipv4_vpn_export_policy = local.ipv4_vpn_export_policy
+  evpn_ipv4_advertisement_policy = local.evpn_ipv4_advertisement_policy
 }
 
 module "greatfox_leaf_vms" {
@@ -48,4 +49,5 @@ module "greatfox_leaf_vms" {
   spines                 = local.spines
   l2_vnis                = local.l2_vnis
   ipv4_vpn_export_policy = local.ipv4_vpn_export_policy
+  evpn_ipv4_advertisement_policy = local.evpn_ipv4_advertisement_policy
 }

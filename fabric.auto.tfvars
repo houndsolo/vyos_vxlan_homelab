@@ -34,7 +34,7 @@ fabric = {
     external                  = true
     neighbor_suppress         = false
     nolearning                = true
-    vni_filter                = false
+    vni_filter                = true
   }
 
   evpn_rr = {
@@ -130,7 +130,7 @@ vnis = {
       border_leaf_ipv4_rt_exports      = "700:6600"
       border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4                  = true
-      anycast_mac          = "bc:24:11:00:66:00"
+      #anycast_mac          = "bc:24:11:00:66:00"
       evpn_rt_imports = [
         "700:6600",
       ]
@@ -183,7 +183,7 @@ vnis = {
       vni       = 6900
       vrf       = "lylat_lan"
       vrf_table = 1337
-      anycast_mac          = "bc:24:11:00:69:00"
+      #anycast_mac          = "bc:24:11:00:69:00"
       #ipv4_rt_imports = "700:6600"
       #ipv4_rt_exports = "700:6900"
       #border_leaf_ipv4_vrf_imports = [
@@ -253,7 +253,7 @@ vnis = {
       #]
       border_leaf_ipv4_rt_imports      = "700:6666 700:6600 700:6900"
       border_leaf_ipv4_rt_exports      = "700:6200"
-      anycast_mac          = "bc:24:11:00:62:00"
+      #anycast_mac          = "bc:24:11:00:62:00"
       border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4                  = true
       evpn_rt_imports = [

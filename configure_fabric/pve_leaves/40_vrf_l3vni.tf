@@ -31,6 +31,48 @@ resource "vyos_policy_prefix_list_rule" "ipv4_vpn_export_prefix_rules" {
   prefix = each.value.prefix
 }
 
+resource "vyos_policy_route_map" "evpn_advertise" {
+  for_each = var.evpn_ipv4_advertisement_policy
+
+  identifier = {
+    route_map = each.value.route_map_name
+  }
+}
+
+resource "vyos_policy_route_map_rule" "evpn_advertise_deny_native" {
+  depends_on = [
+    vyos_policy_prefix_list_rule.ipv4_vpn_export_prefix_rules,
+    vyos_policy_route_map.evpn_advertise,
+  ]
+  for_each = var.evpn_ipv4_advertisement_policy
+
+  identifier = {
+    route_map = each.value.route_map_name
+    rule      = 10
+  }
+
+  action = "deny"
+  match = {
+    ip = {
+      address = {
+        prefix_list = each.value.prefix_list_name
+      }
+    }
+  }
+}
+
+resource "vyos_policy_route_map_rule" "evpn_advertise_permit_other" {
+  depends_on = [vyos_policy_route_map.evpn_advertise]
+  for_each   = var.evpn_ipv4_advertisement_policy
+
+  identifier = {
+    route_map = each.value.route_map_name
+    rule      = 100
+  }
+
+  action = "permit"
+}
+
 resource "vyos_policy_route_map" "create_route_map" {
   for_each = var.ipv4_vpn_export_policy
 
@@ -124,14 +166,27 @@ resource "vyos_vrf_name" "create_vrfs" {
           } : {}
         )
 
-        l2vpn_evpn = {
-          rd = "${var.node.vxlan_loopback_net}:${each.value.vni}"
+        l2vpn_evpn = merge(
+          {
+            rd = "${var.node.vxlan_loopback_net}:${each.value.vni}"
 
-          route_target = {
-            import = each.value.evpn_rt_imports
-            export = each.value.evpn_rt_exports
-          }
-        }
+            route_target = {
+              import = each.value.evpn_rt_imports
+              export = each.value.evpn_rt_exports
+            }
+          },
+          each.value.export_vpn_ipv4 ? {
+            advertise = {
+              ipv4 = {
+                unicast = {
+                  route_map = contains(keys(var.evpn_ipv4_advertisement_policy), each.key) ? (
+                    var.evpn_ipv4_advertisement_policy[each.key].route_map_name
+                  ) : "block_local_as_rm"
+                }
+              }
+            }
+          } : {}
+        )
       }
     }
   }

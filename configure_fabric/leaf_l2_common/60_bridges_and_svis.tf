@@ -15,15 +15,15 @@ resource "vyos_interfaces_bridge_vif" "vxlan_bridge_L2" {
     bridge = "br0"
     vif = each.value.vlan_id
   }
-  ip = {
-    enable_arp_accept = true
-  }
   mtu = var.vxlan.outer_mtu
+  vrf        = each.value.vrf
+  #ip = {
+  #  enable_arp_accept = true
+  #}
   #address = [
   #  "${each.value.anycast_gw_ip}/${each.value.anycast_gw_cidr}"
   #]
   #mac = each.value.anycast_mac
-  vrf        = each.value.vrf
 }
 
 
@@ -36,7 +36,7 @@ resource "vyos_interfaces_bridge_vif" "vxlan_bridge_L3" {
     vif = each.value.vlan_id
   }
   mtu        = var.vxlan.outer_mtu
-  mac = each.value.anycast_mac
+  #mac = each.value.anycast_mac
   vrf        = each.value.vrf
 }
 
@@ -54,6 +54,7 @@ resource "vyos_interfaces_pseudo_ethernet" "anycast_gateway_peth" {
   depends_on       = [vyos_interfaces_bridge_member_interface.br0_vxlan0]
   identifier       = { pseudo_ethernet = "peth${each.value.vni}" }
   source_interface = "br0.${each.value.vlan_id}"
+  anycast_gateway = true
   ip = {
     disable_arp_filter = true
   }
@@ -65,13 +66,25 @@ resource "vyos_interfaces_pseudo_ethernet" "anycast_gateway_peth" {
   vrf = each.value.vrf
 }
 
-resource "vyos_interfaces_vxlan_vlan_to_vni" "svd_mapping" {
+resource "vyos_interfaces_vxlan_vlan_to_vni" "svd_mapping_L2" {
   depends_on = [vyos_interfaces_bridge_member_interface.br0_vxlan0]
+  for_each = var.l2_vnis
   identifier = {
     #vlan
-    vlan_to_vni = "2-10"
+    vlan_to_vni = each.value.vlan_id
     vxlan = "vxlan0"
   }
-  vni = "9002-9010"
+  vni = each.value.vni
+}
+
+resource "vyos_interfaces_vxlan_vlan_to_vni" "svd_mapping_L3" {
+  depends_on = [vyos_interfaces_bridge_member_interface.br0_vxlan0]
+  for_each = var.vnis.l3
+  identifier = {
+    #vlan
+    vlan_to_vni = each.value.vlan_id
+    vxlan = "vxlan0"
+  }
+  vni = each.value.vni
 }
 

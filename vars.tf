@@ -185,7 +185,7 @@ variable "vnis" {
       evpn_rt_exports                  = optional(list(string), [])
       ext_l3                           = optional(bool, false)
       export_vpn_ipv4                  = optional(bool, false)
-        anycast_mac          = string
+        anycast_mac          = optional(string,null)
       redistribute_ipv4 = optional(object({
         connected = optional(object({}), null)
         static    = optional(object({}), null)
