@@ -1,6 +1,6 @@
 resource "vyos_interfaces_vxlan" "vxlan_interface" {
   identifier       = { vxlan = "vxlan0" }
-  source_interface = var.node.vxlan_source_interface
+  #source_interface = var.node.vxlan_source_interface
   source_address   = var.node.vxlan_loopback_v6_net
   mtu              = var.vxlan.mtu
   ip = {

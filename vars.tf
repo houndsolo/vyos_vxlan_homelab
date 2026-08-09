@@ -50,6 +50,7 @@ variable "fabric" {
     leaves = map(object({
       id                 = number
       hypervisor_node    = optional(string, null)
+      configure          = optional(bool, true)
       is_vm              = optional(bool, true)
       started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)

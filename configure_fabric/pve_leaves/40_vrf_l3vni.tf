@@ -136,34 +136,34 @@ resource "vyos_vrf_name" "create_vrfs" {
       address_family = {
         ipv4_unicast = merge(
           {
-            export = { vpn = true }
-            import = { vpn = true }
+            # export = { vpn = true }
+            # import = { vpn = true }
 
-            rd = {
-              vpn = {
-                export = "${var.node.vxlan_loopback_net}:${each.value.vni}"
-              }
-            }
+            #rd = {
+            #  vpn = {
+            #    export = "${var.node.vxlan_loopback_net}:${each.value.vni}"
+            #  }
+            #}
 
-            route_target = {
-              vpn = {
-                import = each.value.ipv4_rt_imports
-                export = each.value.ipv4_rt_exports
-              }
-            }
+            #route_target = {
+            #  vpn = {
+            #    import = each.value.ipv4_rt_imports
+            #    export = each.value.ipv4_rt_exports
+            #  }
+            #}
 
             soft_reconfiguration = { inbound = true }
           },
           each.value.redistribute_ipv4 != null ? {
             redistribute = each.value.redistribute_ipv4
           } : {},
-          contains(keys(var.ipv4_vpn_export_policy), each.key) ? {
-            route_map = {
-              vpn = {
-                export = var.ipv4_vpn_export_policy[each.key].route_map_name
-              }
-            }
-          } : {}
+          #contains(keys(var.ipv4_vpn_export_policy), each.key) ? {
+          #  route_map = {
+          #    vpn = {
+          #      export = var.ipv4_vpn_export_policy[each.key].route_map_name
+          #    }
+          #  }
+          #} : {}
         )
 
         l2vpn_evpn = merge(
@@ -179,9 +179,9 @@ resource "vyos_vrf_name" "create_vrfs" {
             advertise = {
               ipv4 = {
                 unicast = {
-                  route_map = contains(keys(var.evpn_ipv4_advertisement_policy), each.key) ? (
-                    var.evpn_ipv4_advertisement_policy[each.key].route_map_name
-                  ) : "block_local_as_rm"
+                  #route_map = contains(keys(var.evpn_ipv4_advertisement_policy), each.key) ? (
+                  #  var.evpn_ipv4_advertisement_policy[each.key].route_map_name
+                  #) : "block_local_as_rm"
                 }
               }
             }

@@ -49,13 +49,13 @@ fabric = {
   }
 
   leaves = {
-    #fichina = { hypervisor_node = "fichina", id = 11, is_vm = true }
-    #macbeth = { hypervisor_node = "macbeth", id = 12, is_vm = true }
-    #titania = { hypervisor_node = "titania", id = 13, is_vm = true }
-    #zoness  = { hypervisor_node = "zoness", id = 14, is_vm = true }
-    #fortuna = { hypervisor_node = "fortuna", id = 15, is_vm = true }
-    #eldarad = { hypervisor_node = "eldarad", id = 16, is_vm = true }
-    #venom   = { hypervisor_node = "venom", id = 17, is_vm = true }
+    fichina = { hypervisor_node = "fichina", id = 11, is_vm = true , started=true}
+    macbeth = { hypervisor_node = "macbeth", id = 12, is_vm = true , started=true}
+    titania = { hypervisor_node = "titania", id = 13, is_vm = true , started=true}
+    zoness  = { hypervisor_node = "zoness", id = 14, is_vm = true  , started=true}
+    fortuna = { hypervisor_node = "fortuna", id = 15, is_vm = true , started=true}
+    eldarad = { hypervisor_node = "eldarad", id = 16, is_vm = true , started=true}
+    venom   = { hypervisor_node = "venom", id = 17, is_vm = true   , started=true}
   }
 
   fabric_ext_leaves = {
@@ -126,13 +126,14 @@ vnis = {
       #border_leaf_ipv4_rt_imports = "420:1337 420:666"
       #border_leaf_ipv4_vrf_imports = [
       #]
-      border_leaf_ipv4_rt_imports      = "700:6666 700:6900 700:6200"
-      border_leaf_ipv4_rt_exports      = "700:6600"
+      #border_leaf_ipv4_rt_imports      = "700:6666 700:6900 700:6200"
+      #border_leaf_ipv4_rt_exports      = "700:6600"
       border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4                  = true
       #anycast_mac          = "bc:24:11:00:66:00"
       evpn_rt_imports = [
         "700:6600",
+        "700:6900",
       ]
       evpn_rt_exports = [
         "700:6600",
@@ -189,8 +190,8 @@ vnis = {
       #border_leaf_ipv4_vrf_imports = [
       #  "lylat_service",
       #]
-      border_leaf_ipv4_rt_imports      = "700:6666 700:6600 700:6200"
-      border_leaf_ipv4_rt_exports      = "700:6900"
+      #border_leaf_ipv4_rt_imports      = "700:6666 700:6600 700:6200"
+      #border_leaf_ipv4_rt_exports      = "700:6900"
       border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4                  = true
       redistribute_ipv4 = {
@@ -198,6 +199,7 @@ vnis = {
       }
       evpn_rt_imports = [
         "700:6900",
+        "700:6600",
       ]
       evpn_rt_exports = [
         "700:6900",
@@ -251,8 +253,8 @@ vnis = {
       #border_leaf_ipv4_vrf_imports = [
       #  "lylat_service",
       #]
-      border_leaf_ipv4_rt_imports      = "700:6666 700:6600 700:6900"
-      border_leaf_ipv4_rt_exports      = "700:6200"
+      #border_leaf_ipv4_rt_imports      = "700:6666 700:6600 700:6900"
+      #border_leaf_ipv4_rt_exports      = "700:6200"
       #anycast_mac          = "bc:24:11:00:62:00"
       border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4                  = true
