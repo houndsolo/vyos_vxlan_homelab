@@ -38,51 +38,6 @@ variable "spines" {
   }))
 }
 
-variable "l2_vnis" {
-  description = "Flattened L2VNI map derived once by configure_fabric."
-  type = map(object({
-    vni                  = number
-    vlan_id              = number
-    anycast_gw_ip        = string
-    anycast_gw_cidr      = number
-    anycast_mac          = string
-    advertise_default_gw = optional(bool, false)
-    advertise_svi_ip     = optional(bool, false)
-    export_ipv4_unicast  = optional(bool, false)
-    l3_key               = string
-    l2_key               = string
-    l3_vni               = number
-    vrf                  = string
-    vrf_table            = number
-    bridge               = string
-    bridge_vif           = number
-  }))
-}
-
-variable "ipv4_vpn_export_policy" {
-  description = "Per-VRF IPv4 VPN export policy names derived once by configure_fabric."
-  type = map(object({
-    prefix_list_name = string
-    route_map_name   = string
-  }))
-}
-
-variable "ipv4_vpn_import_policy" {
-  description = "Per-VRF IPv4 VPN import policy and allowed prefixes derived by configure_fabric."
-  type = map(object({
-    prefix_list_name = string
-    route_map_name   = string
-  }))
-}
-
-variable "evpn_ipv4_advertisement_policy" {
-  description = "Per-VRF EVPN IPv4 advertisement policy names derived by configure_fabric."
-  type = map(object({
-    prefix_list_name = string
-    route_map_name   = string
-  }))
-}
-
 variable "vxlan" {
   type = object({
     mtu                       = number

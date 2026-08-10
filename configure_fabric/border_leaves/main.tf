@@ -1,3 +1,9 @@
+locals {
+  border_vnis = {
+    l3 = var.vnis.external_l3
+  }
+}
+
 module "leaf_common" {
   source = "../leaf_common"
 
@@ -6,11 +12,11 @@ module "leaf_common" {
   node                   = var.node
   dns                    = var.dns
   bgp_l2vpn              = var.bgp_l2vpn
-  vnis                   = var.vnis
+  vnis                   = local.border_vnis
   vxlan                  = var.vxlan
   spines                 = var.spines
-  l2_vnis                = var.l2_vnis
-  ipv4_vpn_export_policy = var.ipv4_vpn_export_policy
+  l2_vnis                = {}
+  ipv4_vpn_export_policy = {}
 }
 
 module "leaf_l2_common" {
@@ -26,9 +32,9 @@ module "leaf_l2_common" {
   node                   = var.node
   dns                    = var.dns
   bgp_l2vpn              = var.bgp_l2vpn
-  vnis                   = var.vnis
+  vnis                   = local.border_vnis
   vxlan                  = var.vxlan
   spines                 = var.spines
-  l2_vnis                = var.l2_vnis
-  ipv4_vpn_export_policy = var.ipv4_vpn_export_policy
+  l2_vnis                = {}
+  ipv4_vpn_export_policy = {}
 }
