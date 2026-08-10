@@ -143,9 +143,9 @@ vnis = {
       evpn_rt_exports = [
         "700:6600",
       ]
-      redistribute_ipv4 = {
-        connected = {}
-      }
+      #redistribute_ipv4 = {
+      #  connected = {}
+      #}
 
       l2 = {
         6 = {
@@ -199,9 +199,9 @@ vnis = {
       #border_leaf_ipv4_rt_exports      = "700:6900"
       border_leaf_ipv4_vpn_import_bool = true
       export_vpn_ipv4                  = true
-      redistribute_ipv4 = {
-        connected = {}
-      }
+      #redistribute_ipv4 = {
+      #  connected = {}
+      #}
       evpn_rt_imports = [
         "700:6900",
         "700:6600",
@@ -270,9 +270,9 @@ vnis = {
       evpn_rt_exports = [
         "700:6200",
       ]
-      redistribute_ipv4 = {
-        connected = {}
-      }
+      #redistribute_ipv4 = {
+      #  connected = {}
+      #}
 
       l2 = {
         2 = {

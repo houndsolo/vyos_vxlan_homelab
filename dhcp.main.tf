@@ -1,21 +1,19 @@
 locals {
-  dhcp_vnis = sort(flatten([
-    for l3 in values(var.vnis.l3) : [for l2 in values(l3.l2) : l2.vni if l2.dhcp != null]
-  ]))
+  dhcp_segments = {
+    for l2 in flatten([for l3 in values(var.vnis.l3) : values(l3.l2)]) :
+    tostring(l2.vni) => l2 if l2.dhcp != null
+  }
+  dhcp_vnis = sort(keys(local.dhcp_segments))
   dhcp_attachments = {
-    for attachment in flatten([
-      for l3 in values(var.vnis.l3) : [
-        for l2 in values(l3.l2) : {
-          vni            = l2.vni
-          interface      = "eth${index(local.dhcp_vnis, tostring(l2.vni)) + 1}"
-          bridge         = "vmbr4000"
-          vlan_id         = l2.vni - 9000
-          subnet         = cidrsubnet("${l2.anycast_gw_ip}/${l2.anycast_gw_cidr}", 0, 0)
-          default_router = l2.anycast_gw_ip
-          scope          = l2.dhcp.scope
-        } if l2.dhcp != null
-      ]
-    ]) : tostring(attachment.vni) => attachment
+    for vni, l2 in local.dhcp_segments : vni => {
+      vni            = l2.vni
+      interface      = "eth${index(local.dhcp_vnis, vni) + 1}"
+      bridge         = "vmbr4000"
+      vlan_id        = l2.vlan_id
+      subnet         = cidrsubnet("${l2.anycast_gw_ip}/${l2.anycast_gw_cidr}", 0, 0)
+      default_router = l2.anycast_gw_ip
+      scope          = l2.dhcp.scope
+    }
   }
   dhcp_scopes = { for vni, attachment in local.dhcp_attachments : vni => attachment if attachment.scope != null }
   dhcp_server_addresses = {

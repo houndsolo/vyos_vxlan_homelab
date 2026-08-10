@@ -11,33 +11,41 @@ moved {
 }
 
 module "create_leaf_vms" {
-  for_each        = { for name, leaf in var.fabric.leaves : name => merge(leaf, { hostname = "vtep-${name}" }) if leaf.is_vm }
-  source          = "./proxmox_vteps"
-  host_node       = each.value
+  for_each = { for name, leaf in var.fabric.leaves : name => merge(leaf, { hostname = "vtep-${name}" }) if leaf.is_vm }
+  source   = "./pve_vm"
+  host_node = merge(each.value, {
+    network_devices = [for bridge in coalesce(each.value.underlay_bridges, var.proxmox_vtep_vm.default_underlay_bridges) : { bridge = bridge }]
+  })
   vm_config       = var.proxmox_vtep_vm
   fabric_defaults = var.fabric.defaults
 }
 
 module "create_border_leaf_vms" {
-  for_each        = { for name, leaf in var.fabric.border_leaves : name => merge(leaf, { hostname = "vtep-border-${leaf.id}" }) if leaf.is_vm }
-  source          = "./proxmox_vteps"
-  host_node       = each.value
+  for_each = { for name, leaf in var.fabric.border_leaves : name => merge(leaf, { hostname = "vtep-border-${leaf.id}" }) if leaf.is_vm }
+  source   = "./pve_vm"
+  host_node = merge(each.value, {
+    network_devices = [for bridge in coalesce(each.value.underlay_bridges, var.proxmox_vtep_vm.default_underlay_bridges) : { bridge = bridge }]
+  })
   vm_config       = var.proxmox_vtep_vm
   fabric_defaults = var.fabric.defaults
 }
 
 module "create_fabric_ext_leaf_vms" {
-  for_each        = { for name, leaf in var.fabric.fabric_ext_leaves : name => merge(leaf, { hostname = "vtep-fabric-ext-${leaf.id}" }) if leaf.is_vm }
-  source          = "./proxmox_vteps"
-  host_node       = each.value
+  for_each = { for name, leaf in var.fabric.fabric_ext_leaves : name => merge(leaf, { hostname = "vtep-fabric-ext-${leaf.id}" }) if leaf.is_vm }
+  source   = "./pve_vm"
+  host_node = merge(each.value, {
+    network_devices = [for bridge in coalesce(each.value.underlay_bridges, var.proxmox_vtep_vm.default_underlay_bridges) : { bridge = bridge }]
+  })
   vm_config       = var.proxmox_vtep_vm
   fabric_defaults = var.fabric.defaults
 }
 
 module "create_greatfox_leaf_vms" {
-  for_each        = { for name, leaf in var.fabric.leaves_greatfox : name => merge(leaf, { hostname = "vtep-${name}" }) if leaf.is_vm }
-  source          = "./proxmox_vteps"
-  host_node       = each.value
+  for_each = { for name, leaf in var.fabric.leaves_greatfox : name => merge(leaf, { hostname = "vtep-${name}" }) if leaf.is_vm }
+  source   = "./pve_vm"
+  host_node = merge(each.value, {
+    network_devices = [for bridge in coalesce(each.value.underlay_bridges, var.proxmox_vtep_vm.default_underlay_bridges) : { bridge = bridge }]
+  })
   vm_config       = var.proxmox_vtep_vm
   fabric_defaults = var.fabric.defaults
 
@@ -46,7 +54,7 @@ module "create_greatfox_leaf_vms" {
 
 module "create_dhcp_vms" {
   for_each  = var.dhcp.nodes
-  source    = "./proxmox_vteps"
+  source    = "./pve_vm"
   vm_config = var.proxmox_vtep_vm
   host_node = {
     hostname           = each.key
@@ -56,7 +64,10 @@ module "create_dhcp_vms" {
     management_address = cidrhost(var.fabric.defaults.vyos_mgmt_prefix, each.value.id)
     started            = each.value.started
     tags               = ["opentofu", "debian", "vyos", "dhcp"]
-    network_bridges    = [for vni in sort(keys(var.dhcp_attachments)) : var.dhcp_attachments[vni].vlan_id]
+    network_devices = [for vni in sort(keys(var.dhcp_attachments)) : {
+      bridge  = var.dhcp_attachments[vni].bridge
+      vlan_id = var.dhcp_attachments[vni].vlan_id
+    }]
   }
   fabric_defaults = var.fabric.defaults
 }

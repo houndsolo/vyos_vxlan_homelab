@@ -46,7 +46,7 @@ See [`configure_fabric/README.md`](configure_fabric/README.md) for module owners
 │   └── border_leaves/           # border policy and external routing
 ├── configure_dhcp/              # isolated VyOS DHCP system/interface/Kea/HA configuration
 └── create_fabric_vms/
-    └── proxmox_vteps/           # one VyOS VM resource
+    └── pve_vm/                  # reusable VM resource with bridge/VLAN NICs
 ```
 
 `single_vrf_fabric.auto.tfvars.no` is a disabled alternative intent file retained as a reference. OpenTofu does not load it because its suffix is not `.tfvars`.
@@ -146,23 +146,22 @@ Edit `proxmox_vm.auto.tfvars` for image, storage, cloud-init, management/underla
 
 DHCP intent lives with each L2VNI rather than in a duplicate scope map. The outer
 `dhcp` object attaches both DHCP VMs to that L2VNI. Attachments are ordered by
-VNI, and VNI 900X uses the existing Proxmox SDN bridge `vnetX`. An optional nested `scope` enables
+VNI. Each service NIC connects to `vmbr4000` with the L2 segment's `vlan_id` as
+its Proxmox VLAN tag. An optional nested `scope` enables
 Kea service on that interface. The configuration derives the normalized subnet,
 gateway, Kea subnet ID, server addresses, DNS/domain defaults, interface name,
 and bridge name from the L2VNI, root DNS, and DHCP cluster objects.
 
-The fixed layout is:
+The generated layout is:
 
 | Interface | Existing Proxmox bridge | Function | Derived node addresses |
 | --- | --- | --- | --- |
 | `eth0` | management bridge from `proxmox_vm.auto.tfvars` | VyOS management/API | management prefix host IDs 251 and 252 |
-| `eth1` | `vnet6` | HA only (no client scope) | `10.6.10.251/16`, `10.6.10.252/16` |
-| `eth2` | `vnet8` | L2VNI 9008 scope | `10.8.10.251/16`, `10.8.10.252/16` |
-| `eth3` | `vnet9` | L2VNI 9009 scope | `10.9.10.251/16`, `10.9.10.252/16` |
+| `eth1` onward | `vmbr4000`, tagged with `l2.vlan_id` | One NIC per DHCP-enabled L2VNI, in VNI order | Derived from the segment subnet and node ID |
 
-This dedicated-interface design creates no VLAN subinterfaces and contains no
-separately maintained NIC indexes. `vnet6`, `vnet8`, and `vnet9` must
-already exist on both `titania` and `zoness`; this configuration deliberately
+This dedicated-interface design creates no VyOS VLAN subinterfaces and contains
+no separately maintained NIC indexes. `vmbr4000` must already exist as a
+VLAN-aware bridge on both `titania` and `zoness`; this configuration deliberately
 does not manage Proxmox Linux bridges. The HA peers communicate over L2VNI 9006
 and require TCP port 647 between `10.6.10.251` and `10.6.10.252`.
 

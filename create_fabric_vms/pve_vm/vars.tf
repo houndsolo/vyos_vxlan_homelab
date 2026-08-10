@@ -1,5 +1,5 @@
 variable "host_node" {
-  description = "Role-independent VyOS VM identity and ordered network layout."
+  description = "VyOS VM identity and ordered Proxmox network layout."
   type = object({
     hostname           = string
     hypervisor_node    = string
@@ -8,8 +8,10 @@ variable "host_node" {
     management_address = optional(string)
     started            = optional(bool, false)
     tags               = optional(list(string))
-    network_bridges    = optional(list(string))
-    underlay_bridges   = optional(list(string))
+    network_devices = list(object({
+      bridge  = string
+      vlan_id = optional(number)
+    }))
   })
 }
 
@@ -22,7 +24,7 @@ variable "fabric_defaults" {
 }
 
 variable "vm_config" {
-  description = "Proxmox VM settings for this VyOS VTEP instance."
+  description = "Shared Proxmox settings for this VyOS VM."
   type = object({
     datastore_id             = string
     import_image             = string

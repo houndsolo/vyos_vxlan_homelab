@@ -1,4 +1,9 @@
-resource "proxmox_virtual_environment_vm" "vyos_vxlan_vtep" {
+moved {
+  from = proxmox_virtual_environment_vm.vyos_vxlan_vtep
+  to   = proxmox_virtual_environment_vm.vm
+}
+
+resource "proxmox_virtual_environment_vm" "vm" {
   name            = var.host_node.hostname
   description     = "managed by opentofu"
   tags            = coalesce(var.host_node.tags, ["opentofu", "debian", "vyos", "vxlan"])
@@ -46,10 +51,11 @@ resource "proxmox_virtual_environment_vm" "vyos_vxlan_vtep" {
   }
 
   dynamic "network_device" {
-    for_each = coalesce(var.host_node.network_bridges, var.host_node.underlay_bridges, var.vm_config.default_underlay_bridges)
+    for_each = var.host_node.network_devices
     content {
       disconnected = false
-      bridge       = network_device.value
+      bridge       = network_device.value.bridge
+      vlan_id      = network_device.value.vlan_id
       model        = "virtio"
       mtu          = 1
     }
