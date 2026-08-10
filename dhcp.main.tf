@@ -8,7 +8,8 @@ locals {
         for l2 in values(l3.l2) : {
           vni            = l2.vni
           interface      = "eth${index(local.dhcp_vnis, tostring(l2.vni)) + 1}"
-          bridge         = "vnet${l2.vni - 9000}"
+          bridge         = "vmbr4000"
+          vlan_id         = l2.vni - 9000
           subnet         = cidrsubnet("${l2.anycast_gw_ip}/${l2.anycast_gw_cidr}", 0, 0)
           default_router = l2.anycast_gw_ip
           scope          = l2.dhcp.scope

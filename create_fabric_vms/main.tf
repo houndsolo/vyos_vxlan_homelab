@@ -56,7 +56,7 @@ module "create_dhcp_vms" {
     management_address = cidrhost(var.fabric.defaults.vyos_mgmt_prefix, each.value.id)
     started            = each.value.started
     tags               = ["opentofu", "debian", "vyos", "dhcp"]
-    network_bridges    = [for vni in sort(keys(var.dhcp_attachments)) : var.dhcp_attachments[vni].bridge]
+    network_bridges    = [for vni in sort(keys(var.dhcp_attachments)) : var.dhcp_attachments[vni].vlan_id]
   }
   fabric_defaults = var.fabric.defaults
 }

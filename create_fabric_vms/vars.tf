@@ -101,6 +101,7 @@ variable "dhcp_attachments" {
     vni            = number
     interface      = string
     bridge         = string
+    vlan_id         = number
     subnet         = string
     default_router = string
     scope          = any
