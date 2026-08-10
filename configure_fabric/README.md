@@ -33,7 +33,11 @@ The default derivation is:
 underlay local ASN = underlay_local_as_base + node_id
 IPv4 VTEP          = cidrhost(ipv4_loopback_prefix, node_id)/32
 IPv6 overlay       = cidrhost(ipv6_underlay_prefix, hexadecimal(node_id))/128
+router MAC (RMAC)  = 00:13:37:00:00:<zero-padded node_id>
 ```
+
+The shared `leaf_l2_common` module derives the RMAC once per leaf and applies
+the same value to both `br0` and `vxlan0`.
 
 The hexadecimal conversion preserves the lab's established IPv6 address convention. Do not replace it with a decimal host offset without planning an addressing migration.
 

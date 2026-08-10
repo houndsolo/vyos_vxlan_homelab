@@ -171,6 +171,50 @@ variable "dns" {
 
 variable "vnis" {
   type = object({
+    external_l3 = map(object({
+      vni                              = number
+      vrf                              = string
+      vrf_table                        = number
+      vlan_id                             = number
+      ipv4_rt_imports                  = optional(string, null)
+      ipv4_rt_exports                  = optional(string, null)
+      border_leaf_ipv4_rt_imports      = optional(string, null)
+      border_leaf_ipv4_rt_exports      = optional(string, null)
+      border_leaf_ipv4_vpn_import_bool = optional(bool, false)
+      border_leaf_ipv4_vrf_imports     = optional(list(string), null)
+      evpn_rt_imports                  = optional(list(string), [])
+      evpn_rt_exports                  = optional(list(string), [])
+      ext_l3                           = optional(bool, false)
+      export_vpn_ipv4                  = optional(bool, false)
+        anycast_mac          = optional(string,null)
+      redistribute_ipv4 = optional(object({
+        connected = optional(object({}), null)
+        static    = optional(object({}), null)
+      }))
+      l2 = optional(map(object({
+        vni                  = number
+        vlan_id              = number
+        anycast_gw_ip        = string
+        anycast_gw_cidr      = number
+        anycast_mac          = string
+        advertise_default_gw = optional(bool, false)
+        advertise_svi_ip     = optional(bool, false)
+        export_ipv4_unicast  = optional(bool, false)
+        dhcp = optional(object({
+          scope = optional(object({
+            ranges = map(object({
+              start = string
+              stop  = string
+            }))
+            name_servers  = optional(list(string))
+            domain_name   = optional(string)
+            domain_search = optional(list(string))
+            lease_seconds = optional(number)
+            authoritative = optional(bool)
+          }))
+        }))
+      })), {})
+    }))
     l3 = map(object({
       vni                              = number
       vrf                              = string

@@ -1,8 +1,9 @@
 resource "vyos_interfaces_vxlan" "vxlan_interface" {
-  identifier       = { vxlan = "vxlan0" }
+  identifier = { vxlan = "vxlan0" }
   #source_interface = var.node.vxlan_source_interface
-  source_address   = var.node.vxlan_loopback_v6_net
-  mtu              = var.vxlan.mtu
+  source_address = var.node.vxlan_loopback_v6_net
+  mac            = local.rmac
+  mtu            = var.vxlan.mtu
   ip = {
     disable_arp_filter        = var.vxlan.disable_arp_filter
     disable_forwarding        = var.vxlan.disable_forwarding

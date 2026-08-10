@@ -179,9 +179,9 @@ resource "vyos_vrf_name" "create_vrfs" {
             advertise = {
               ipv4 = {
                 unicast = {
-                  #route_map = contains(keys(var.evpn_ipv4_advertisement_policy), each.key) ? (
-                  #  var.evpn_ipv4_advertisement_policy[each.key].route_map_name
-                  #) : "block_local_as_rm"
+                  route_map = contains(keys(var.evpn_ipv4_advertisement_policy), each.key) ? (
+                    var.evpn_ipv4_advertisement_policy[each.key].route_map_name
+                  ) : "block_local_as_rm"
                 }
               }
             }

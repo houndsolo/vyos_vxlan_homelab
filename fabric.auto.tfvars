@@ -90,10 +90,9 @@ fabric = {
 }
 
 vnis = {
-  l3 = {
-
+  external_l3 = {
     6666 = {
-      vlan_id      = 66
+      vlan_id      = 1000
       vni       = 6666
       vrf       = "lylat_external"
       vrf_table = 6666
@@ -110,14 +109,19 @@ vnis = {
       export_vpn_ipv4                  = true
       evpn_rt_imports = [
         "700:6666",
+        "700:6900",
+        "700:6600",
       ]
       evpn_rt_exports = [
         "700:6666",
       ]
     }
+  }
+  l3 = {
+
 
     6600 = {
-      vlan_id      = 1000
+      vlan_id      = 66
       vni       = 6600
       vrf       = "lylat_service"
       vrf_table = 1000
@@ -134,6 +138,7 @@ vnis = {
       evpn_rt_imports = [
         "700:6600",
         "700:6900",
+        "700:6666",
       ]
       evpn_rt_exports = [
         "700:6600",
@@ -200,6 +205,7 @@ vnis = {
       evpn_rt_imports = [
         "700:6900",
         "700:6600",
+        "700:6666",
       ]
       evpn_rt_exports = [
         "700:6900",
