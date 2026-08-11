@@ -23,8 +23,8 @@ suppression policies from `vnis.l3[*].l2`. An L2VNI participates when
 5. `advertise ipv4 unicast` remains enabled so native subnets are visible as
    local EVPN Type-5 routes. Local inter-VRF reachability comes from the local
    VPN RIB rather than self-originated EVPN RT import.
-6. `RM-EVPN-SPINE-EXPORT` rejects EVPN Type-5 prefixes in
-   `PL-EVPN-LOCAL-L2VNI-SUBNETS`, then permits everything else.
+6. `RM-EVPN-SPINE-EXPORT` has one reject rule for each participating VRF's
+   existing `PL-<VRF>-L2VNI-SUBNETS` list, then permits everything else.
 
 The pinned provider schema supports `export.vpn`, `import.vpn`, `rd.vpn.export`,
 `route_target.vpn.import/export`, and `route_map.vpn.export` directly in the
@@ -32,9 +32,9 @@ The pinned provider schema supports `export.vpn`, `import.vpn`, `rd.vpn.export`,
 connected redistribution, BGP-to-EVPN advertisement, and EVPN peer-group
 export.
 
-The spine export route-map matches EVPN route type `prefix` as well as the exact
-native-subnet prefix-list. Consequently Type-2, Type-3, and multihoming NLRI do
-not match, while exact subnet entries also exclude shared `/32` routes.
+The spine export route-map rules match EVPN route type `prefix` as well as each
+exact native-subnet prefix-list. Consequently Type-2, Type-3, and multihoming
+NLRI do not match, while exact subnet entries also exclude shared `/32` routes.
 
 Border leaves instantiate only external L3VNI 6666 and receive an empty native
 L2VNI policy map. They do not receive tenant local-VPN export or spine

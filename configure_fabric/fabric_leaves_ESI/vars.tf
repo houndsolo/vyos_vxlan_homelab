@@ -69,10 +69,6 @@ variable "l2vni_subnet_policies" {
   }))
 }
 
-variable "exported_l2vni_subnets" {
-  description = "L2VNIs whose native IPv4 subnet should enter BGP."
-}
-
 variable "evpn_ipv4_advertisement_policies" {
   description = "Generated EVPN IPv4 advertisement route map for each eligible VRF."
   type = map(object({

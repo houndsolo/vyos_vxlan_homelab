@@ -11,12 +11,6 @@ locals {
     ])
   }
 
-  # Native subnets used to build the per-VRF prefix lists above.
-  exported_l2vni_subnets = {
-    for vni, l2 in local.l2_vnis : vni => l2
-    if try(l2.export_ipv4_unicast, false)
-  }
-
   # VRFs allowed to advertise imported IPv4 VPN routes into EVPN.
   evpn_ipv4_advertisement_policies = {
     for l3_key, l3 in var.vnis.l3 : l3_key => {

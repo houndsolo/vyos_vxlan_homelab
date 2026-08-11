@@ -32,7 +32,7 @@ resource "vyos_protocols_bgp_peer_group" "peer_group_spine_overlay" {
   address_family = {
     l2vpn_evpn = merge({
       soft_reconfiguration = { inbound = true }
-      }, length(var.l2_vnis) > 0 ? {
+      }, length(var.l2vni_subnet_policies) > 0 ? {
       route_map = { export = "RM-EVPN-SPINE-EXPORT" }
     } : {})
   }

@@ -59,6 +59,14 @@ variable "l2_vnis" {
   }))
 }
 
+variable "l2vni_subnet_policies" {
+  description = "Generated names for each VRF that exports native L2VNI subnets."
+  type = map(object({
+    prefix_list = string
+  }))
+  default = {}
+}
+
 variable "vxlan" {
   type = object({
     mtu                       = number

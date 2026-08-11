@@ -55,19 +55,19 @@ resource "vyos_policy_route_map_rule" "local_as_rm_rule_deny" {
 }
 
 
-# Exact L2VNI subnet matches are safe in the EVPN neighbor policy: IPv4 prefix
-# matching in the EVPN AF applies to Type-5 NLRI, while Type-2/3 NLRI have no
-# IPv4-unicast prefix on which this list can match.
-resource "vyos_policy_prefix_list" "evpn_local_l2vni_subnets" {
-  count      = length(var.l2_vnis) > 0 ? 1 : 0
-  identifier = { prefix_list = "PL-EVPN-LOCAL-L2VNI-SUBNETS" }
+# These per-VRF lists are also consumed by connected redistribution and local
+# VPN export. Reusing the caller's policy map avoids maintaining an aggregate
+# copy solely for the EVPN neighbor policy.
+resource "vyos_policy_prefix_list" "l2vni_subnets" {
+  for_each   = var.l2vni_subnet_policies
+  identifier = { prefix_list = each.value.prefix_list }
 }
 
-resource "vyos_policy_prefix_list_rule" "evpn_local_l2vni_subnet_rules" {
+resource "vyos_policy_prefix_list_rule" "l2vni_subnet_rules" {
   for_each   = { for key, l2 in var.l2_vnis : key => l2 if try(l2.export_ipv4_unicast, false) }
-  depends_on = [vyos_policy_prefix_list.evpn_local_l2vni_subnets]
+  depends_on = [vyos_policy_prefix_list.l2vni_subnets]
   identifier = {
-    prefix_list = "PL-EVPN-LOCAL-L2VNI-SUBNETS"
+    prefix_list = var.l2vni_subnet_policies[each.value.l3_key].prefix_list
     rule        = tonumber(each.value.vlan_id) * 10
   }
   action = "permit"
@@ -75,24 +75,27 @@ resource "vyos_policy_prefix_list_rule" "evpn_local_l2vni_subnet_rules" {
 }
 
 resource "vyos_policy_route_map" "evpn_spine_export" {
-  count      = length(var.l2_vnis) > 0 ? 1 : 0
-  depends_on = [vyos_policy_prefix_list_rule.evpn_local_l2vni_subnet_rules]
+  count      = length(var.l2vni_subnet_policies) > 0 ? 1 : 0
+  depends_on = [vyos_policy_prefix_list_rule.l2vni_subnet_rules]
   identifier = { route_map = "RM-EVPN-SPINE-EXPORT" }
 }
 
 resource "vyos_policy_route_map_rule" "evpn_spine_export_deny_l2vni_subnets" {
-  count      = length(var.l2_vnis) > 0 ? 1 : 0
+  for_each   = var.l2vni_subnet_policies
   depends_on = [vyos_policy_route_map.evpn_spine_export]
-  identifier = { route_map = "RM-EVPN-SPINE-EXPORT", rule = 10 }
-  action     = "deny"
+  identifier = {
+    route_map = "RM-EVPN-SPINE-EXPORT"
+    rule      = (index(sort(keys(var.l2vni_subnet_policies)), each.key) + 1) * 10
+  }
+  action = "deny"
   match = {
     evpn = { route_type = "prefix" }
-    ip   = { address = { prefix_list = "PL-EVPN-LOCAL-L2VNI-SUBNETS" } }
+    ip   = { address = { prefix_list = each.value.prefix_list } }
   }
 }
 
 resource "vyos_policy_route_map_rule" "evpn_spine_export_permit_other" {
-  count      = length(var.l2_vnis) > 0 ? 1 : 0
+  count      = length(var.l2vni_subnet_policies) > 0 ? 1 : 0
   depends_on = [vyos_policy_route_map.evpn_spine_export]
   identifier = { route_map = "RM-EVPN-SPINE-EXPORT", rule = 100 }
   action     = "permit"

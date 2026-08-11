@@ -81,28 +81,6 @@ resource "vyos_vrf_name" "create_vrfs" {
   }
 }
 
-resource "vyos_policy_prefix_list" "create_prefix_list" {
-  for_each = var.l2vni_subnet_policies
-
-  identifier = {
-    prefix_list = each.value.prefix_list
-  }
-}
-
-resource "vyos_policy_prefix_list_rule" "l2vni_subnet_rules" {
-  depends_on = [resource.vyos_policy_prefix_list.create_prefix_list]
-
-  for_each = var.exported_l2vni_subnets
-
-  identifier = {
-    prefix_list = var.l2vni_subnet_policies[each.value.l3_key].prefix_list
-    rule        = tonumber(each.value.vlan_id) * 10
-  }
-
-  action = "permit"
-  prefix = cidrsubnet("${each.value.anycast_gw_ip}/${each.value.anycast_gw_cidr}", 0, 0)
-}
-
 resource "vyos_policy_route_map" "evpn_advertise" {
   for_each = var.evpn_ipv4_advertisement_policies
 
@@ -113,7 +91,6 @@ resource "vyos_policy_route_map" "evpn_advertise" {
 
 resource "vyos_policy_route_map_rule" "evpn_advertise_deny_native" {
   depends_on = [
-    vyos_policy_prefix_list_rule.l2vni_subnet_rules,
     vyos_policy_route_map.evpn_advertise,
   ]
   for_each = var.evpn_ipv4_advertisement_policies
@@ -136,7 +113,7 @@ resource "vyos_policy_route_map" "create_route_map" {
 }
 
 resource "vyos_policy_route_map_rule" "connected_to_bgp_permit" {
-  depends_on = [resource.vyos_policy_route_map.create_route_map]
+  depends_on = [module.leaf_common, resource.vyos_policy_route_map.create_route_map]
   for_each   = var.l2vni_subnet_policies
 
   identifier = {
@@ -175,7 +152,7 @@ resource "vyos_policy_route_map" "bgp_to_local_vpn" {
 }
 
 resource "vyos_policy_route_map_rule" "bgp_to_local_vpn_permit" {
-  depends_on = [vyos_policy_route_map.bgp_to_local_vpn]
+  depends_on = [module.leaf_common, vyos_policy_route_map.bgp_to_local_vpn]
   for_each   = var.l2vni_subnet_policies
 
   identifier = {
@@ -192,4 +169,3 @@ resource "vyos_policy_route_map_rule" "bgp_to_local_vpn_permit" {
     }
   }
 }
-

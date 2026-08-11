@@ -10,6 +10,8 @@ module "leaf_common" {
   vxlan     = var.vxlan
   spines    = var.spines
   l2_vnis   = var.l2_vnis
+
+  l2vni_subnet_policies = var.l2vni_subnet_policies
 }
 
 module "leaf_l2_common" {

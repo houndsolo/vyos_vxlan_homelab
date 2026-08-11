@@ -42,7 +42,7 @@ resource "vyos_vrf_name" "create_vrfs" {
             advertise = {
               ipv4 = {
                 unicast = {
-                  route_map = "block_local_as_rm"
+                  #route_map = "block_local_as_rm"
                 }
               }
             }
