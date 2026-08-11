@@ -1,13 +1,12 @@
-
 resource "vyos_policy_prefix_list" "create_prefix_list" {
-  for_each = var.ipv4_vpn_export_policy
+  for_each = var.l2vni_subnet_policy
 
   identifier = {
     prefix_list = each.value.prefix_list_name
   }
 }
 
-resource "vyos_policy_prefix_list_rule" "ipv4_vpn_export_prefix_rules" {
+resource "vyos_policy_prefix_list_rule" "l2vni_subnet_rules" {
   depends_on = [resource.vyos_policy_prefix_list.create_prefix_list]
 
   for_each = merge([
@@ -23,7 +22,7 @@ resource "vyos_policy_prefix_list_rule" "ipv4_vpn_export_prefix_rules" {
   ]...)
 
   identifier = {
-    prefix_list = var.ipv4_vpn_export_policy[each.value.l3_key].prefix_list_name
+    prefix_list = var.l2vni_subnet_policy[each.value.l3_key].prefix_list_name
     rule        = each.value.rule
   }
 
@@ -41,7 +40,7 @@ resource "vyos_policy_route_map" "evpn_advertise" {
 
 resource "vyos_policy_route_map_rule" "evpn_advertise_deny_native" {
   depends_on = [
-    vyos_policy_prefix_list_rule.ipv4_vpn_export_prefix_rules,
+    vyos_policy_prefix_list_rule.l2vni_subnet_rules,
     vyos_policy_route_map.evpn_advertise,
   ]
   for_each = var.evpn_ipv4_advertisement_policy
@@ -51,14 +50,8 @@ resource "vyos_policy_route_map_rule" "evpn_advertise_deny_native" {
     rule      = 10
   }
 
-  action = "deny"
-  match = {
-    ip = {
-      address = {
-        prefix_list = each.value.prefix_list_name
-      }
-    }
-  }
+  # This stage intentionally admits native subnets into the local EVPN RIB.
+  action = "permit"
 }
 
 resource "vyos_policy_route_map_rule" "evpn_advertise_permit_other" {
@@ -74,16 +67,16 @@ resource "vyos_policy_route_map_rule" "evpn_advertise_permit_other" {
 }
 
 resource "vyos_policy_route_map" "create_route_map" {
-  for_each = var.ipv4_vpn_export_policy
+  for_each = var.l2vni_subnet_policy
 
   identifier = {
     route_map = each.value.route_map_name
   }
 }
 
-resource "vyos_policy_route_map_rule" "ipv4_vpn_export_permit" {
+resource "vyos_policy_route_map_rule" "connected_to_bgp_permit" {
   depends_on = [resource.vyos_policy_route_map.create_route_map]
-  for_each   = var.ipv4_vpn_export_policy
+  for_each   = var.l2vni_subnet_policy
 
   identifier = {
     route_map = each.value.route_map_name
@@ -101,8 +94,8 @@ resource "vyos_policy_route_map_rule" "ipv4_vpn_export_permit" {
   }
 }
 
-resource "vyos_policy_route_map_rule" "ipv4_vpn_export_deny" {
-  for_each = var.ipv4_vpn_export_policy
+resource "vyos_policy_route_map_rule" "connected_to_bgp_deny_other" {
+  for_each = var.l2vni_subnet_policy
 
   identifier = {
     route_map = each.value.route_map_name
@@ -112,9 +105,39 @@ resource "vyos_policy_route_map_rule" "ipv4_vpn_export_deny" {
   action = "deny"
 }
 
+resource "vyos_policy_route_map" "bgp_to_local_vpn" {
+  for_each = var.l2vni_subnet_policy
+
+  identifier = {
+    route_map = each.value.vpn_export_route_map_name
+  }
+}
+
+resource "vyos_policy_route_map_rule" "bgp_to_local_vpn_permit" {
+  depends_on = [vyos_policy_route_map.bgp_to_local_vpn]
+  for_each   = var.l2vni_subnet_policy
+
+  identifier = {
+    route_map = each.value.vpn_export_route_map_name
+    rule      = 10
+  }
+
+  action = "permit"
+  match = {
+    ip = {
+      address = {
+        prefix_list = each.value.prefix_list_name
+      }
+    }
+  }
+}
+
 resource "vyos_vrf_name" "create_vrfs" {
-  depends_on = [module.leaf_common]
-  for_each   = var.vnis.l3
+  depends_on = [
+    module.leaf_common,
+    vyos_policy_route_map_rule.bgp_to_local_vpn_permit,
+  ]
+  for_each = var.vnis.l3
 
   identifier = { name = each.value.vrf }
 
@@ -136,34 +159,36 @@ resource "vyos_vrf_name" "create_vrfs" {
       address_family = {
         ipv4_unicast = merge(
           {
-            # export = { vpn = true }
-            # import = { vpn = true }
-
-            #rd = {
-            #  vpn = {
-            #    export = "${var.node.vxlan_loopback_net}:${each.value.vni}"
-            #  }
-            #}
-
-            #route_target = {
-            #  vpn = {
-            #    import = each.value.ipv4_rt_imports
-            #    export = each.value.ipv4_rt_exports
-            #  }
-            #}
-
             soft_reconfiguration = { inbound = true }
           },
-          each.value.redistribute_ipv4 != null ? {
-            redistribute = each.value.redistribute_ipv4
-          } : {},
-          #contains(keys(var.ipv4_vpn_export_policy), each.key) ? {
-          #  route_map = {
-          #    vpn = {
-          #      export = var.ipv4_vpn_export_policy[each.key].route_map_name
-          #    }
-          #  }
-          #} : {}
+          {
+            export = { vpn = true }
+            import = { vpn = true }
+            rd = {
+              vpn = {
+                export = "${var.node.vxlan_loopback_net}:${each.value.vni}"
+              }
+            }
+            route_target = {
+              vpn = {
+                import = each.value.ipv4_rt_imports
+                export = each.value.ipv4_rt_exports
+              }
+            }
+            route_map = {
+              vpn = {
+                export = var.l2vni_subnet_policy[each.key].vpn_export_route_map_name
+              }
+            }
+          },
+          contains(keys(var.l2vni_subnet_policy), each.key) ? {
+            redistribute = merge(
+              each.value.redistribute_ipv4 != null ? each.value.redistribute_ipv4 : {},
+              { connected = { route_map = var.l2vni_subnet_policy[each.key].route_map_name } }
+            )
+            } : (each.value.redistribute_ipv4 != null ? {
+              redistribute = each.value.redistribute_ipv4
+          } : {}),
         )
 
         l2vpn_evpn = merge(

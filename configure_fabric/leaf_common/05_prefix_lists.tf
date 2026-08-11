@@ -77,6 +77,49 @@ locals {
   }
 }
 
+# Exact L2VNI subnet matches are safe in the EVPN neighbor policy: IPv4 prefix
+# matching in the EVPN AF applies to Type-5 NLRI, while Type-2/3 NLRI have no
+# IPv4-unicast prefix on which this list can match.
+resource "vyos_policy_prefix_list" "evpn_local_l2vni_subnets" {
+  count      = length(var.l2_vnis) > 0 ? 1 : 0
+  identifier = { prefix_list = "PL-EVPN-LOCAL-L2VNI-SUBNETS" }
+}
+
+resource "vyos_policy_prefix_list_rule" "evpn_local_l2vni_subnet_rules" {
+  for_each   = { for key, l2 in var.l2_vnis : key => l2 if try(l2.export_ipv4_unicast, false) }
+  depends_on = [vyos_policy_prefix_list.evpn_local_l2vni_subnets]
+  identifier = {
+    prefix_list = "PL-EVPN-LOCAL-L2VNI-SUBNETS"
+    rule        = tonumber(each.value.vlan_id) * 10
+  }
+  action = "permit"
+  prefix = cidrsubnet("${each.value.anycast_gw_ip}/${each.value.anycast_gw_cidr}", 0, 0)
+}
+
+resource "vyos_policy_route_map" "evpn_spine_export" {
+  count      = length(var.l2_vnis) > 0 ? 1 : 0
+  depends_on = [vyos_policy_prefix_list_rule.evpn_local_l2vni_subnet_rules]
+  identifier = { route_map = "RM-EVPN-SPINE-EXPORT" }
+}
+
+resource "vyos_policy_route_map_rule" "evpn_spine_export_deny_l2vni_subnets" {
+  count      = length(var.l2_vnis) > 0 ? 1 : 0
+  depends_on = [vyos_policy_route_map.evpn_spine_export]
+  identifier = { route_map = "RM-EVPN-SPINE-EXPORT", rule = 10 }
+  action     = "deny"
+  match = {
+    evpn = { route_type = "prefix" }
+    ip   = { address = { prefix_list = "PL-EVPN-LOCAL-L2VNI-SUBNETS" } }
+  }
+}
+
+resource "vyos_policy_route_map_rule" "evpn_spine_export_permit_other" {
+  count      = length(var.l2_vnis) > 0 ? 1 : 0
+  depends_on = [vyos_policy_route_map.evpn_spine_export]
+  identifier = { route_map = "RM-EVPN-SPINE-EXPORT", rule = 100 }
+  action     = "permit"
+}
+
 resource "vyos_policy_as_path_list" "block_local_AS_evpn" {
   identifier = {
     as_path_list = "block_local_AS_evpn_PL"

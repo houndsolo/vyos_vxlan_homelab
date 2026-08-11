@@ -21,18 +21,20 @@ resource "vyos_protocols_bgp_address_family_l2vpn_evpn_flooding" "l2vpn_evpn_flo
 }
 
 resource "vyos_protocols_bgp_peer_group" "peer_group_spine_overlay" {
-  depends_on    = [vyos_protocols_bgp.enable_bgp]
+  depends_on = [
+    vyos_protocols_bgp.enable_bgp,
+    vyos_policy_route_map_rule.evpn_spine_export_permit_other,
+  ]
   identifier    = { peer_group = "spine_overlay" }
   remote_as     = "internal"
   update_source = var.node.vxlan_source_interface
   bfd           = {}
   address_family = {
-    l2vpn_evpn = {
+    l2vpn_evpn = merge({
       soft_reconfiguration = { inbound = true }
-      #route_map = {
-      #  export = "block_local_as_rm"
-      #}
-    }
+      }, length(var.l2_vnis) > 0 ? {
+      route_map = { export = "RM-EVPN-SPINE-EXPORT" }
+    } : {})
   }
 }
 

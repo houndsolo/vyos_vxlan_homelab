@@ -175,7 +175,7 @@ variable "vnis" {
       vni                              = number
       vrf                              = string
       vrf_table                        = number
-      vlan_id                             = number
+      vlan_id                          = number
       ipv4_rt_imports                  = optional(string, null)
       ipv4_rt_exports                  = optional(string, null)
       border_leaf_ipv4_rt_imports      = optional(string, null)
@@ -186,9 +186,9 @@ variable "vnis" {
       evpn_rt_exports                  = optional(list(string), [])
       ext_l3                           = optional(bool, false)
       export_vpn_ipv4                  = optional(bool, false)
-        anycast_mac          = optional(string,null)
+      anycast_mac                      = optional(string, null)
       redistribute_ipv4 = optional(object({
-        connected = optional(object({}), null)
+        connected = optional(object({ route_map = optional(string) }), null)
         static    = optional(object({}), null)
       }))
       l2 = optional(map(object({
@@ -219,7 +219,7 @@ variable "vnis" {
       vni                              = number
       vrf                              = string
       vrf_table                        = number
-      vlan_id                             = number
+      vlan_id                          = number
       ipv4_rt_imports                  = optional(string, null)
       ipv4_rt_exports                  = optional(string, null)
       border_leaf_ipv4_rt_imports      = optional(string, null)
@@ -230,9 +230,9 @@ variable "vnis" {
       evpn_rt_exports                  = optional(list(string), [])
       ext_l3                           = optional(bool, false)
       export_vpn_ipv4                  = optional(bool, false)
-        anycast_mac          = optional(string,null)
+      anycast_mac                      = optional(string, null)
       redistribute_ipv4 = optional(object({
-        connected = optional(object({}), null)
+        connected = optional(object({ route_map = optional(string) }), null)
         static    = optional(object({}), null)
       }))
       l2 = optional(map(object({

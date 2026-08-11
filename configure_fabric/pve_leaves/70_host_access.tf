@@ -32,6 +32,6 @@ resource "vyos_interfaces_bridge_member_interface" "br0_eth3" {
     interface = "eth3"
   }
   allowed_vlan = [
-  for vni in var.l2_vnis : tostring(vni.vlan_id)
+    for vni in var.l2_vnis : tostring(vni.vlan_id)
   ]
 }

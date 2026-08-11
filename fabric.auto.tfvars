@@ -49,13 +49,13 @@ fabric = {
   }
 
   leaves = {
-    fichina = { hypervisor_node = "fichina", id = 11, is_vm = true , started=true}
-    macbeth = { hypervisor_node = "macbeth", id = 12, is_vm = true , started=true}
-    titania = { hypervisor_node = "titania", id = 13, is_vm = true , started=true}
-    zoness  = { hypervisor_node = "zoness", id = 14, is_vm = true  , started=true}
-    fortuna = { hypervisor_node = "fortuna", id = 15, is_vm = true , started=true}
-    eldarad = { hypervisor_node = "eldarad", id = 16, is_vm = true , started=true}
-    venom   = { hypervisor_node = "venom", id = 17, is_vm = true   , started=true}
+    fichina = { hypervisor_node = "fichina", id = 11, is_vm = true, started = true }
+    macbeth = { hypervisor_node = "macbeth", id = 12, is_vm = true, started = true }
+    titania = { hypervisor_node = "titania", id = 13, is_vm = true, started = true }
+    zoness  = { hypervisor_node = "zoness", id = 14, is_vm = true, started = true }
+    fortuna = { hypervisor_node = "fortuna", id = 15, is_vm = true, started = true }
+    eldarad = { hypervisor_node = "eldarad", id = 16, is_vm = true, started = true }
+    venom   = { hypervisor_node = "venom", id = 17, is_vm = true, started = true }
   }
 
   fabric_ext_leaves = {
@@ -84,7 +84,7 @@ fabric = {
       hypervisor_node = "greatfox"
       id              = 20
       is_vm           = true
-     started            = true
+      started         = true
     }
   }
 }
@@ -92,11 +92,11 @@ fabric = {
 vnis = {
   external_l3 = {
     6666 = {
-      vlan_id      = 1000
-      vni       = 6666
-      vrf       = "lylat_external"
-      vrf_table = 6666
-      anycast_mac          = "bc:24:11:00:66:66"
+      vlan_id     = 1000
+      vni         = 6666
+      vrf         = "lylat_external"
+      vrf_table   = 6666
+      anycast_mac = "bc:24:11:00:66:66"
       #ipv4_rt_imports = "700:6200 700:6900"
       #ipv4_rt_exports = "700:6600"
       #border_leaf_ipv4_rt_imports = "420:1337 420:666"
@@ -121,12 +121,12 @@ vnis = {
 
 
     6600 = {
-      vlan_id      = 66
-      vni       = 6600
-      vrf       = "lylat_service"
-      vrf_table = 1000
-      #ipv4_rt_imports = "700:6200 700:6900"
-      #ipv4_rt_exports = "700:6600"
+      vlan_id         = 66
+      vni             = 6600
+      vrf             = "lylat_service"
+      vrf_table       = 1000
+      ipv4_rt_imports = "700:6200 700:6900"
+      ipv4_rt_exports = "700:6600"
       #border_leaf_ipv4_rt_imports = "420:1337 420:666"
       #border_leaf_ipv4_vrf_imports = [
       #]
@@ -185,13 +185,13 @@ vnis = {
       }
     }
     6900 = {
-      vlan_id      = 69
+      vlan_id   = 69
       vni       = 6900
       vrf       = "lylat_lan"
       vrf_table = 1337
       #anycast_mac          = "bc:24:11:00:69:00"
-      #ipv4_rt_imports = "700:6600"
-      #ipv4_rt_exports = "700:6900"
+      ipv4_rt_imports = "700:6600"
+      ipv4_rt_exports = "700:6900"
       #border_leaf_ipv4_vrf_imports = [
       #  "lylat_service",
       #]
@@ -250,12 +250,12 @@ vnis = {
     }
 
     6200 = {
-      vlan_id      = 62
-      vni       = 6200
-      vrf       = "lylat_infra"
-      vrf_table = 700
-      #ipv4_rt_imports = "700:6600"
-      #ipv4_rt_exports = "700:6200"
+      vlan_id         = 62
+      vni             = 6200
+      vrf             = "lylat_infra"
+      vrf_table       = 700
+      ipv4_rt_imports = "700:6600"
+      ipv4_rt_exports = "700:6200"
       #border_leaf_ipv4_vrf_imports = [
       #  "lylat_service",
       #]

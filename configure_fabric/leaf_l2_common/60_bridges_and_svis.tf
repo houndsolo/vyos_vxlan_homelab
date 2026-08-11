@@ -58,6 +58,7 @@ resource "vyos_interfaces_pseudo_ethernet" "anycast_gateway_peth" {
   anycast_gateway  = true
   ip = {
     disable_arp_filter = true
+    enable_arp_accept  = true
   }
   address = [
     #"${each.value.anycast_gw_ip}/${each.value.anycast_gw_cidr}"

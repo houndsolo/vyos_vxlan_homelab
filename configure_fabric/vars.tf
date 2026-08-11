@@ -45,7 +45,7 @@ locals {
     })
   }
   pve_leaves = {
-    for node_name, node in var.fabric.leaves:
+    for node_name, node in var.fabric.leaves :
     node_name => merge(node, {
       hostname               = "LEAF-${node.id}"
       l2_svd                 = var.fabric.defaults.l2_service_bridge_id
@@ -84,39 +84,27 @@ locals {
     }
   ]...)
 
-  ipv4_vpn_export_policy = {
+  l2vni_subnet_policy = {
     for l3_key, l3 in var.vnis.l3 :
     l3_key => {
-      prefix_list_name = "PL-${upper(replace(l3.vrf, "_", "-"))}-IPV4-NATIVE"
-      route_map_name   = "RM-${upper(replace(l3.vrf, "_", "-"))}-IPV4-VPN-EXPORT"
+      prefix_list_name          = "PL-${upper(replace(l3.vrf, "_", "-"))}-L2VNI-SUBNETS"
+      route_map_name            = "RM-${upper(replace(l3.vrf, "_", "-"))}-CONNECTED-TO-BGP"
+      vpn_export_route_map_name = "RM-${upper(replace(l3.vrf, "_", "-"))}-BGP-TO-LOCAL-VPN"
     }
     if anytrue([
       for l2_key, l2 in l3.l2 : try(l2.export_ipv4_unicast, false)
     ])
   }
 
-  # The existing per-VRF RT import list selects which VPN routes are eligible.
-  # This policy is attached only to that VPN import path, where it strips the
-  # communities from every route that passed the RT import selection.
-  ipv4_vpn_import_policy = {
-    for destination_key, destination in var.vnis.l3 :
-    destination_key => {
-      prefix_list_name = "PL-${upper(replace(destination.vrf, "_", "-"))}-IPV4-VPN-IMPORT"
-      route_map_name   = "RM-${upper(replace(destination.vrf, "_", "-"))}-IPV4-VPN-IMPORT"
-    }
-    if try(destination.border_leaf_ipv4_vpn_import_bool, false) &&
-    destination.border_leaf_ipv4_rt_imports != null
-  }
-
   evpn_ipv4_advertisement_policy = {
     for l3_key, l3 in var.vnis.l3 :
     l3_key => {
-      prefix_list_name = local.ipv4_vpn_export_policy[l3_key].prefix_list_name
-      route_map_name   = "RM-${upper(replace(l3.vrf, "_", "-"))}-EVPN-ADVERTISE"
+      prefix_list_name = local.l2vni_subnet_policy[l3_key].prefix_list_name
+      route_map_name   = "RM-${upper(replace(l3.vrf, "_", "-"))}-BGP-TO-EVPN"
     }
     if try(l3.export_vpn_ipv4, false) &&
     try(l3.border_leaf_ipv4_vpn_import_bool, false) &&
-    contains(keys(local.ipv4_vpn_export_policy), l3_key)
+    contains(keys(local.l2vni_subnet_policy), l3_key)
   }
 }
 
