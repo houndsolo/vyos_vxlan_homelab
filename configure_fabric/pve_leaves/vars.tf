@@ -59,12 +59,24 @@ variable "l2_vnis" {
   }))
 }
 
-variable "l2vni_subnet_policy" {
-  description = "Per-VRF native L2VNI subnet policy names derived once by configure_fabric."
+
+variable "l2vni_subnet_policies" {
+  description = "Generated names for each VRF that exports native L2VNI subnets."
   type = map(object({
-    prefix_list_name          = string
-    route_map_name            = string
-    vpn_export_route_map_name = string
+    prefix_list          = string
+    connected_route_map  = string
+    vpn_export_route_map = string
+  }))
+}
+
+variable "exported_l2vni_subnets" {
+  description = "L2VNIs whose native IPv4 subnet should enter BGP."
+}
+
+variable "evpn_ipv4_advertisement_policies" {
+  description = "Generated EVPN IPv4 advertisement route map for each eligible VRF."
+  type = map(object({
+    route_map = string
   }))
 }
 
@@ -97,11 +109,4 @@ variable "bgp_l2vpn" {
 }
 
 variable "vnis" {
-}
-variable "evpn_ipv4_advertisement_policy" {
-  description = "Per-VRF EVPN IPv4 advertisement policy names derived by configure_fabric."
-  type = map(object({
-    prefix_list_name = string
-    route_map_name   = string
-  }))
 }

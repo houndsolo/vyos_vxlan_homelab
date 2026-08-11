@@ -24,11 +24,13 @@ module "fabric_ext_leaf_vms" {
   vnis        = var.vnis
   external_l2 = var.external_l2
 
-  vxlan                          = var.fabric.vxlan
-  spines                         = local.spines
-  l2_vnis                        = local.l2_vnis
-  l2vni_subnet_policy            = local.l2vni_subnet_policy
-  evpn_ipv4_advertisement_policy = local.evpn_ipv4_advertisement_policy
+  vxlan   = var.fabric.vxlan
+  spines  = local.spines
+  l2_vnis = local.l2_vnis
+
+  l2vni_subnet_policies            = local.l2vni_subnet_policies
+  exported_l2vni_subnets           = local.exported_l2vni_subnets
+  evpn_ipv4_advertisement_policies = local.evpn_ipv4_advertisement_policies
 }
 
 module "greatfox_leaf_vms" {
@@ -41,11 +43,13 @@ module "greatfox_leaf_vms" {
   bgp_l2vpn = var.fabric.bgp_l2vpn
   vnis      = var.vnis
 
-  vxlan                          = var.fabric.vxlan
-  spines                         = local.spines
-  l2_vnis                        = local.l2_vnis
-  l2vni_subnet_policy            = local.l2vni_subnet_policy
-  evpn_ipv4_advertisement_policy = local.evpn_ipv4_advertisement_policy
+  vxlan   = var.fabric.vxlan
+  spines  = local.spines
+  l2_vnis = local.l2_vnis
+
+  l2vni_subnet_policies            = local.l2vni_subnet_policies
+  exported_l2vni_subnets           = local.exported_l2vni_subnets
+  evpn_ipv4_advertisement_policies = local.evpn_ipv4_advertisement_policies
 }
 
 module "pve_leaves_vms" {
@@ -58,9 +62,11 @@ module "pve_leaves_vms" {
   bgp_l2vpn = var.fabric.bgp_l2vpn
   vnis      = var.vnis
 
-  vxlan                          = var.fabric.vxlan
-  spines                         = local.spines
-  l2_vnis                        = local.l2_vnis
-  l2vni_subnet_policy            = local.l2vni_subnet_policy
-  evpn_ipv4_advertisement_policy = local.evpn_ipv4_advertisement_policy
+  vxlan   = var.fabric.vxlan
+  spines  = local.spines
+  l2_vnis = local.l2_vnis
+
+  l2vni_subnet_policies            = local.l2vni_subnet_policies
+  exported_l2vni_subnets           = local.exported_l2vni_subnets
+  evpn_ipv4_advertisement_policies = local.evpn_ipv4_advertisement_policies
 }

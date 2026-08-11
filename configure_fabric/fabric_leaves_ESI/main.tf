@@ -3,14 +3,13 @@ module "leaf_common" {
 
   providers = { vyos = vyos }
 
-  node                = var.node
-  dns                 = var.dns
-  bgp_l2vpn           = var.bgp_l2vpn
-  vnis                = var.vnis
-  vxlan               = var.vxlan
-  spines              = var.spines
-  l2_vnis             = var.l2_vnis
-  l2vni_subnet_policy = var.l2vni_subnet_policy
+  node      = var.node
+  dns       = var.dns
+  bgp_l2vpn = var.bgp_l2vpn
+  vnis      = var.vnis
+  vxlan     = var.vxlan
+  spines    = var.spines
+  l2_vnis   = var.l2_vnis
 }
 
 module "leaf_l2_common" {
@@ -23,12 +22,11 @@ module "leaf_l2_common" {
     vyos_vrf_name.create_vrfs
   ]
 
-  node                = var.node
-  dns                 = var.dns
-  bgp_l2vpn           = var.bgp_l2vpn
-  vnis                = var.vnis
-  vxlan               = var.vxlan
-  spines              = var.spines
-  l2_vnis             = var.l2_vnis
-  l2vni_subnet_policy = var.l2vni_subnet_policy
+  node      = var.node
+  dns       = var.dns
+  bgp_l2vpn = var.bgp_l2vpn
+  vnis      = var.vnis
+  vxlan     = var.vxlan
+  spines    = var.spines
+  l2_vnis   = var.l2_vnis
 }

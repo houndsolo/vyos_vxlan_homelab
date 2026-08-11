@@ -59,15 +59,6 @@ variable "l2_vnis" {
   }))
 }
 
-variable "l2vni_subnet_policy" {
-  description = "Per-VRF native L2VNI subnet policy names derived once by configure_fabric."
-  type = map(object({
-    prefix_list_name          = string
-    route_map_name            = string
-    vpn_export_route_map_name = string
-  }))
-}
-
 variable "vxlan" {
   type = object({
     mtu                       = number

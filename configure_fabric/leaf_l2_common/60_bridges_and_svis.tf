@@ -4,7 +4,7 @@ resource "vyos_interfaces_bridge" "vxlan_bridge" {
   ip = {
     enable_arp_accept = true
   }
-  mac         = local.rmac
+  mac         = format("00:13:37:00:00:%02d", var.node.id)
   mtu         = var.vxlan.outer_mtu
   enable_vlan = true
 }
