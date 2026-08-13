@@ -10,7 +10,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   started         = var.host_node.started
   keyboard_layout = "en-us"
   migrate         = false
-  on_boot         = false
+  on_boot         = true
   reboot          = false
   stop_on_destroy = true
 

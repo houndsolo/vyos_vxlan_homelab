@@ -137,6 +137,7 @@ vnis = {
       #anycast_mac          = "bc:24:11:00:66:00"
       evpn_rt_imports = [
         "700:6600",
+        "700:6200",
         "700:6900",
         "700:6666",
       ]
@@ -205,6 +206,7 @@ vnis = {
       evpn_rt_imports = [
         "700:6900",
         "700:6600",
+        "700:6200",
         "700:6666",
       ]
       evpn_rt_exports = [
@@ -266,6 +268,8 @@ vnis = {
       export_vpn_ipv4                  = true
       evpn_rt_imports = [
         "700:6200",
+        "700:6900",
+        "700:6600",
       ]
       evpn_rt_exports = [
         "700:6200",
