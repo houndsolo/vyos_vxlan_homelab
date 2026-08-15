@@ -15,7 +15,13 @@ The root configuration invokes three independent modules:
 | `configure_fabric` | Configures the currently enabled border leaves through the VyOS API. |
 | `configure_dhcp` | Configures only the two dedicated VyOS Kea DHCP nodes: system identity/DNS, physical service interfaces, scopes, HA, and disabled IPv4 forwarding. |
 
-Standard, fabric-extension, and `greatfox` leaves have provider definitions, but their configuration module calls are not enabled. The MikroTik spines are inventory/peering targets only and are configured outside this repository. This distinction is important: an apply does **not** configure every entry in `fabric`.
+There are 4 types of leaves:
+- cluster_leaves: VMs in PVE Cluster
+- single_leafs: stand alone PVE node (my main workstation btw)
+- border_leaves: external L3 connectivity to the rest of my lab/internet
+- fabric_leaves: external L2 connectivity to switches, For wireless clients and other physical devices.
+    - only a single fabric leaf until EVPN MH Split Horizon filters work for me
+  
 
 ### Design at a glance
 
@@ -46,8 +52,11 @@ See [`configure_fabric/README.md`](configure_fabric/README.md) for module owners
 ├── configure_fabric/
 │   ├── leaf_common/             # system, underlay, and BGP EVPN
 │   ├── leaf_l2_common/          # VXLAN devices, bridges, and SVIs
-│   ├── pve_leaves/              # ordinary/extension leaf role
-│   └── border_leaves/           # border policy and external routing
+|   |
+│   ├── pve_leaves/              # VRFs/VM facing interfaces
+│   ├── fabric_leaves/           # VRFs/external interfaces    
+│   └── border_leaves/           # VRFs/external interfaces/peering
+|   
 ├── configure_dhcp/              # isolated VyOS DHCP system/interface/Kea/HA configuration
 └── create_fabric_vms/
     └── pve_vm/                  # reusable VM resource with bridge/VLAN NICs
