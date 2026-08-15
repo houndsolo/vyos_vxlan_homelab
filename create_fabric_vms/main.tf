@@ -1,15 +1,3 @@
-// Preserve the addresses created by the former combined module calls while
-// giving every VM role an independently selectable module instance.
-moved {
-  from = module.create_vyos_vms
-  to   = module.create_fabric_ext_leaf_vms
-}
-
-moved {
-  from = module.create_vyos_vms_greatfox
-  to   = module.create_greatfox_leaf_vms
-}
-
 module "create_leaf_vms" {
   for_each = { for name, leaf in var.fabric.leaves : name => merge(leaf, { hostname = "vtep-${name}" }) if leaf.is_vm }
   source   = "./pve_vm"
