@@ -87,29 +87,10 @@ locals {
 }
 
 
-variable "dns" {
-  description = "DNS configuration"
-  type = object({
-    name_servers  = list(string)
-    domain_name   = string
-    domain_search = list(string)
-  })
-}
-
-
-variable "vyos_key" {
-  type      = string
-  sensitive = true
-}
-
-variable "external_l3" {
-  description = "Border-leaf external L3 connectivity settings."
-  type = object({
-    interface       = string
-    peer_group_name = string
-    remote_asn      = number
-  })
-}
+variable "external_l3" {}
 variable "external_l2" {}
 variable "vnis" {}
 variable "fabric" {}
+
+variable "dns" {}
+variable "vyos_key" {}
