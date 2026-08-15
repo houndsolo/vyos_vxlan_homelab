@@ -19,11 +19,14 @@ Standard, fabric-extension, and `greatfox` leaves have provider definitions, but
 ### Design at a glance
 
 - IPv6 link-local eBGP provides the routed underlay.
-- IPv4 VTEP loopbacks use `10.255.240.<node_id>/32` by default.
 - IPv6 overlay addresses are derived from `fd69:255:240::/64`.
-- EVPN peers use the shared BGP AS `700`; underlay local ASNs are `700 + node_id`.
-- L2VNIs share bridge `br9000`; L3VNIs map to VRFs.
-- Border leaves provide optional per-VRF external L3 connectivity over VLAN subinterfaces.
+- BGP Router IDs are `10.255.240.<node_id>`
+- EVPN peering via iBGP, AS `700`
+- IPv6 underlay via eBGP, AS `700 + node_id`.
+- Single VxLAN Device design. `vxlan0` and `br0`
+- Symmetric IRB
+- External L3 peering via dedicated Border Leaves. Single peering to `service` tennant, with EVPN Route Leaking via Downstream VNI
+- L2 out via single link. EVPN MH Split Horizon filters not yet implemented.
 - Route distinguishers are unique per VTEP (`<router-id>:<vni>`), while route targets are shared per service (`target:<fabric-as>:<vni>`).
 
 See [`configure_fabric/README.md`](configure_fabric/README.md) for module ownership and routing details.
@@ -55,50 +58,23 @@ See [`configure_fabric/README.md`](configure_fabric/README.md) for module owners
 
 - OpenTofu (the commands in this repository intentionally use `tofu`, not `terraform`).
 - Access to the Proxmox APIs and VyOS HTTPS APIs referenced by the committed lab settings.
-- The provider plugins declared in `versions.tf`. The Proxmox provider uses the custom source `local/mechanic/proxmox`, so it must be installed in your OpenTofu provider mirror.
-- `~/.ssh/id_rsa` authorized as `root` on the Proxmox targets.
+- `~/.ssh/id_rsa` authorized as `user` on the Proxmox targets.
 - Existing Proxmox storage objects, bridges, VyOS image, and cloud-init snippet named in `proxmox_vm.auto.tfvars`.
-- MikroTik RouterOS 7.24.1 or newer on the route reflectors (the lab depends on an EVPN route-reflector fix).
+- Existing Spine/EVPN Route Reflectors
 
 ## Credentials
-
-Supply all three sensitive root variables without committing them:
-
-```bash
-export TF_VAR_vyos_key='...'
-export TF_VAR_pve_api_token='...'
-export TF_VAR_gf_api_token='...'
-```
 
 The credentials are:
 
 - `vyos_key`: VyOS HTTPS API key.
 - `pve_api_token`: API token for the primary Proxmox cluster.
-- `gf_api_token`: API token for the separate `greatfox` Proxmox endpoint.
-
-State and plan files can also contain secrets. The included `.gitignore` excludes common local state, plan, override, and credential files; use a secure remote state backend if this evolves beyond a personal lab.
 
 ## Workflow
 
 ```bash
-# Install modules/providers and create/update the dependency lock file.
-tofu init
-
-# Normalize and statically check configuration.
-tofu fmt -recursive
-tofu validate
-
-# Always inspect the proposed device and VM changes.
-tofu plan -out=lab.tfplan
-
-# Apply exactly the reviewed plan.
-tofu apply lab.tfplan
+tofu apply --target=module.create_fabric_vms
+tofu apply --target=module.configure_fabric
 ```
-
-Convenience targets are available as `make fmt`, `make fmt-check`, `make init`, `make validate`, and `make check`.
-
-Because VM creation and device configuration are root sibling modules, OpenTofu may operate on them concurrently. On a first deployment, create/reach the VyOS VMs before enabling their configuration module calls. On an established lab, normal plan/apply is appropriate.
-
 ## Editing the lab
 
 ### Nodes
@@ -113,41 +89,35 @@ leaves = {
 
 - `id` drives VM ID (`700 + id`), BGP local AS, loopback addresses, and management address.
 - `hypervisor_node` is required for VMs.
-- `is_vm = false` prevents VM creation.
+- `is_vm = true` creates vm.
 - `started = true` powers the VM on. It defaults to `false`, allowing each leaf,
   border leaf, fabric-extension leaf, `greatfox` leaf, or DHCP VM to be created
   without automatically starting it.
 - `underlay_bridges` overrides the default Proxmox bridge list.
-- `underlay_peer_vlan` is used by fabric-extension underlay interfaces.
 
-Node IDs must therefore be unique and fit all configured CIDR ranges. A spine needs an `id` and `uplink_if`; its overlay address is derived from its ID.
+Node IDs must therefore be unique. Currently must be in range \[1-255\]
 
-For a configured border or fabric-extension leaf, set `configure = false` and
-apply once before removing its inventory entry. This retains the dynamic VyOS
-provider while OpenTofu removes that node's configuration resources.
 
 ### VRFs and VNIs
 
-Edit `vnis.l3` in `fabric.auto.tfvars`. Each L3 entry describes a VRF, table, L3VNI, EVPN route targets, optional VPN import/export behavior, and optional `ext_l3_vlan`. Nested `l2` entries describe VLAN/VNI pairs, anycast gateways/MACs, and advertisement/export switches.
+Edit `vnis.l3` in `fabric.auto.tfvars`. Each L3 entry describes a VRF, table, L3VNI, EVPN route targets, and optional VPN import/export behavior. Nested `l2` entries describe VLAN/VNI pairs, anycast gateways/MACs, and advertisement/export switches.
 
 Useful conventions:
 
 - Keep one L3VNI and table number per VRF.
 - Keep one L2VNI per VLAN and ensure VNI/VLAN values are unique.
 - Use a unique anycast MAC and valid gateway CIDR for each L2 segment.
-- Omit `ext_l3_vlan` for an internal-only VRF.
 - Carefully review RT imports: they define which tenant routes can cross policy boundaries.
 
 ### VM defaults
 
-Edit `proxmox_vm.auto.tfvars` for image, storage, cloud-init, management/underlay bridges, CPU, memory, and disk defaults. Per-node underlay bridges remain in `fabric.auto.tfvars`.
+Edit `proxmox_vm.auto.tfvars` for image, storage, cloud-init, management/underlay bridges, CPU, memory, and disk defaults.
 
 ### DHCP architecture
 
 DHCP intent lives with each L2VNI rather than in a duplicate scope map. The outer
 `dhcp` object attaches both DHCP VMs to that L2VNI. Attachments are ordered by
-VNI. Each service NIC connects to `vmbr4000` with the L2 segment's `vlan_id` as
-its Proxmox VLAN tag. An optional nested `scope` enables
+VNI.  The nested `scope` enables
 Kea service on that interface. The configuration derives the normalized subnet,
 gateway, Kea subnet ID, server addresses, DNS/domain defaults, interface name,
 and bridge name from the L2VNI, root DNS, and DHCP cluster objects.
@@ -159,35 +129,13 @@ The generated layout is:
 | `eth0` | management bridge from `proxmox_vm.auto.tfvars` | VyOS management/API | management prefix host IDs 251 and 252 |
 | `eth1` onward | `vmbr4000`, tagged with `l2.vlan_id` | One NIC per DHCP-enabled L2VNI, in VNI order | Derived from the segment subnet and node ID |
 
-This dedicated-interface design creates no VyOS VLAN subinterfaces and contains
-no separately maintained NIC indexes. `vmbr4000` must already exist as a
-VLAN-aware bridge on both `titania` and `zoness`; this configuration deliberately
-does not manage Proxmox Linux bridges. The HA peers communicate over L2VNI 9006
+The HA peers communicate over L2VNI 9006
 and require TCP port 647 between `10.6.10.251` and `10.6.10.252`.
 
 IPv4 forwarding is disabled on both DHCP nodes. Because their physical NICs are
 directly attached to L2VNIs in different fabric VRFs, forwarding could otherwise
 turn a DHCP server into an unintended inter-VRF transit router.
 
-Before removing a DHCP node from the inventory, set its optional `configure`
-field to `false` and apply once. This destroys its VyOS configuration while its
-dynamic provider instance still exists; the inventory entry can then be removed
-in a subsequent change without orphaning provider-managed resources.
-
-Set the optional `started` field independently on each DHCP node to control its
-desired Proxmox power state. `started` controls only VM power; `configure`
-controls whether OpenTofu manages the node's VyOS configuration.
-
-Useful DHCP checks on either VyOS node:
-
-```text
-show configuration commands | match 'service dhcp-server'
-show dhcp server leases
-show dhcp server statistics
-show log | match 'kea|dhcp'
-sudo journalctl -u kea-dhcp4-server --since today
-sudo ss -ntp | grep ':647'
-```
 
 ## Operations and troubleshooting
 
@@ -195,14 +143,14 @@ Useful VyOS/FRR checks:
 
 ```text
 show bgp summary
-show bgp ipv4 vpn
+show bgp vrf all ipv4
 show bgp l2vpn evpn summary
-show bgp l2vpn evpn route
+show bgp l2vpn evpn route type [1-5]
 show ip route vrf all
-monitor traffic interface any filter 'port not 22'
+monitor traffic interface any filter 'port not 22 and not 3784 and not 4784' (no ssh or bfd)
 ```
 
-Useful MikroTik checks:
+Useful MikroTik checks: (my current SPINE EVPN RRs)
 
 ```routeros
 /routing/bgp/session/print detail
@@ -210,4 +158,4 @@ Useful MikroTik checks:
 /routing/bgp/advertisements/print detail
 ```
 
-Known limitation: EVPN host-route redistribution directly into the IPv4-VPN address family has not behaved reliably in this lab. The working direction is IPv4-VPN into VRF IPv4 unicast, then advertisement into EVPN. External connectivity currently uses per-VRF IPv4-unicast BGP over IPv6 link-local; an IPv4-VPN/MPLS/LDP/OSPF alternative has also been tested.
+
