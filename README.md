@@ -1,6 +1,7 @@
 # VyOS EVPN/VXLAN homelab
 
-OpenTofu configuration for a small VyOS/FRR EVPN-VXLAN fabric hosted primarily on Proxmox. Two MikroTik CRS326 switches act as out-of-band-managed EVPN route reflectors; this repository creates VyOS VMs and configures the VyOS leaf roles.
+OpenTofu configuration for a small VyOS/FRR EVPN-VXLAN fabric hosted primarily on Proxmox. Two MikroTik CRS326 switches act as out-of-band-managed Spines/EVPN route reflectors; this repository creates VyOS VMs and configures the VyOS leaf roles.
+There are Bare Metal VyOS nodes for L2 and L3 out.
 
 > **Lab-specific repository:** committed `.auto.tfvars` files contain real topology and addressing intent, but not credentials. Review them before applying anywhere other than this lab.
 
