@@ -1,8 +1,3 @@
-moved {
-  from = proxmox_virtual_environment_vm.vyos_vxlan_vtep
-  to   = proxmox_virtual_environment_vm.vm
-}
-
 resource "proxmox_virtual_environment_vm" "vm" {
   name            = var.host_node.hostname
   description     = "managed by opentofu"
