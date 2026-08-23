@@ -1,6 +1,6 @@
 proxmox_vtep_vm = {
   datastore_id             = "ceph_rbd"
-  import_image             = "cephfs:import/vyos-1.5-rolling-202608100041-generic-amd64.qcow2"
+  import_image             = "cephfs:import/vyos-1.5-rolling-202608232120-generic-amd64.qcow2"
   cloud_init_datastore_id  = "ceph_rbd"
   user_data_file_id        = "cephfs:snippets/vyos_api.yml"
   management_bridge        = "vmbr0"

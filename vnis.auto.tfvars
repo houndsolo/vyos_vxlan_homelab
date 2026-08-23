@@ -100,7 +100,7 @@ vnis = {
       vrf       = "lylat_lan"
       vrf_table = 1337
       #anycast_mac          = "bc:24:11:00:69:00"
-      ipv4_rt_imports = "700:6600"
+      ipv4_rt_imports = "700:6600 700:6200"
       ipv4_rt_exports = "700:6900"
       #border_leaf_ipv4_vrf_imports = [
       #  "lylat_service",
@@ -165,7 +165,7 @@ vnis = {
       vni             = 6200
       vrf             = "lylat_infra"
       vrf_table       = 700
-      ipv4_rt_imports = "700:6600"
+      ipv4_rt_imports = "700:6600 700:6900"
       ipv4_rt_exports = "700:6200"
       #border_leaf_ipv4_vrf_imports = [
       #  "lylat_service",
