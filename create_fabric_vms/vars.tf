@@ -53,6 +53,7 @@ variable "fabric" {
       is_vm              = optional(bool, true)
       started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
+      fabric_macs        = map(string)
       underlay_peer_vlan = optional(number, null)
     }))
     fabric_ext_leaves = map(object({
@@ -61,6 +62,7 @@ variable "fabric" {
       is_vm              = optional(bool, true)
       started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
+      fabric_macs        = map(string)
       underlay_peer_vlan = optional(number, null)
     }))
     border_leaves = map(object({
@@ -69,6 +71,7 @@ variable "fabric" {
       is_vm              = optional(bool, true)
       started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
+      fabric_macs        = map(string)
       underlay_peer_vlan = optional(number, null)
     }))
     leaves_greatfox = map(object({
@@ -77,6 +80,7 @@ variable "fabric" {
       is_vm              = optional(bool, true)
       started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
+      fabric_macs        = map(string)
       underlay_peer_vlan = optional(number, null)
     }))
   })

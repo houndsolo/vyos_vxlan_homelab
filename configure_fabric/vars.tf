@@ -42,6 +42,7 @@ locals {
       vxlan_loopback_v6      = "${cidrhost(var.fabric.defaults.ipv6_underlay_prefix, parseint(tostring(node.id), 16))}/128"
       bgp_system_as          = var.fabric.defaults.bgp_system_as
       vxlan_source_interface = var.fabric.defaults.vxlan_source_interface
+      fabric_macs            = node.fabric_macs
     })
   }
   pve_leaves = {
@@ -56,6 +57,7 @@ locals {
       vxlan_loopback_v6      = "${cidrhost(var.fabric.defaults.ipv6_underlay_prefix, parseint(tostring(node.id), 16))}/128"
       bgp_system_as          = var.fabric.defaults.bgp_system_as
       vxlan_source_interface = var.fabric.defaults.vxlan_source_interface
+      fabric_macs            = node.fabric_macs
     })
   }
 

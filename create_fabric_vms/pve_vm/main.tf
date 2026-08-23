@@ -51,6 +51,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
       disconnected = false
       bridge       = network_device.value.bridge
       vlan_id      = network_device.value.vlan_id
+      mac_address  = network_device.value.mac_address
       model        = "virtio"
       mtu          = 1
     }

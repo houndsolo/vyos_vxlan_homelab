@@ -35,4 +35,3 @@ resource "vyos_interfaces_bridge_member_interface" "br0_eth3" {
     for vni in var.l2_vnis : tostring(vni.vlan_id)
   ]
 }
-

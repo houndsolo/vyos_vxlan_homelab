@@ -9,8 +9,9 @@ variable "host_node" {
     started            = optional(bool, false)
     tags               = optional(list(string))
     network_devices = list(object({
-      bridge  = string
-      vlan_id = optional(number)
+      bridge      = string
+      vlan_id     = optional(number)
+      mac_address = optional(string)
     }))
   })
 }

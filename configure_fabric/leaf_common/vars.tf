@@ -24,8 +24,15 @@ variable "node" {
     vxlan_loopback_v6_net  = string
     bgp_system_as          = number
     vxlan_source_interface = string
+    fabric_macs            = optional(map(string), null)
     border_leaf_id_1_2     = optional(number, null)
   })
+}
+
+variable "manage_fabric_hw_ids" {
+  description = "Whether this node is a VM whose fabric interface MAC addresses are managed."
+  type        = bool
+  default     = false
 }
 
 variable "spines" {

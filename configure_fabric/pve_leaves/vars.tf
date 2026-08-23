@@ -24,6 +24,7 @@ variable "node" {
     vxlan_loopback_v6_net  = string
     bgp_system_as          = number
     vxlan_source_interface = string
+    fabric_macs            = map(string)
     border_leaf_id_1_2     = optional(number, null)
   })
 }

@@ -11,6 +11,8 @@ module "leaf_common" {
   spines    = var.spines
   l2_vnis   = var.l2_vnis
 
+  manage_fabric_hw_ids = true
+
   l2vni_subnet_policies = var.l2vni_subnet_policies
 }
 

@@ -3,9 +3,9 @@ resource "vyos_interfaces_ethernet" "link_to_vms" {
   identifier  = { ethernet = "eth3" }
   description = "link to vms"
   mtu         = var.vxlan.mtu
+  hw_id       = var.node.fabric_macs.eth3
   lifecycle {
     ignore_changes = [
-      hw_id,
       offload
     ]
   }
