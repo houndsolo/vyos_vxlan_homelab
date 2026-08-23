@@ -15,7 +15,7 @@ resource "vyos_interfaces_dummy" "dummy_interface" {
 }
 
 resource "vyos_interfaces_ethernet" "link_to_spines" {
-  for_each    = var.manage_fabric_hw_ids ? {} : var.spines
+  for_each    = var.node.is_vm ? {} : var.spines
   identifier  = { ethernet = each.value.uplink_if }
   description = "p2p-spine-${each.value.id}"
   mtu         = var.vxlan.outer_mtu
@@ -29,7 +29,7 @@ resource "vyos_interfaces_ethernet" "link_to_spines" {
 }
 
 resource "vyos_interfaces_ethernet" "vm_link_to_spines" {
-  for_each    = var.manage_fabric_hw_ids ? var.spines : {}
+  for_each    = var.node.is_vm ? var.spines : {}
   identifier  = { ethernet = each.value.uplink_if }
   description = "p2p-spine-${each.value.id}"
   mtu         = var.vxlan.outer_mtu
