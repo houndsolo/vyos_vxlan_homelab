@@ -65,8 +65,9 @@ module "create_dhcp_vms" {
     started            = each.value.started
     tags               = ["opentofu", "debian", "vyos", "dhcp"]
     network_devices = [for vni in sort(keys(var.dhcp_attachments)) : {
-      bridge  = var.dhcp_attachments[vni].bridge
-      vlan_id = var.dhcp_attachments[vni].vlan_id
+      bridge      = var.dhcp_attachments[vni].bridge
+      vlan_id     = var.dhcp_attachments[vni].vlan_id
+      mac_address = format("02:70:00:%02x:%02x:%02x", each.value.ha_role == "primary" ? 1 : 2, floor(var.dhcp_attachments[vni].vlan_id / 256), var.dhcp_attachments[vni].vlan_id % 256)
     }]
   }
   fabric_defaults = var.fabric.defaults
