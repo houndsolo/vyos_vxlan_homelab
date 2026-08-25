@@ -1,3 +1,11 @@
+provider "routeros" {
+  for_each = var.fabric.spines
+  hosturl  = each.value.hosturl
+  username = "admin"
+  password = "admin"
+  insecure = true
+}
+
 provider "vyos" {
   alias    = "leaves"
   for_each = var.fabric.leaves

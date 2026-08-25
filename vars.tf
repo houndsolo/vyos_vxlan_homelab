@@ -45,6 +45,7 @@ variable "fabric" {
       id              = number
       uplink_if       = optional(string, null)
       hypervisor_node = optional(string, null)
+      hosturl        = string
     }))
 
     leaves = map(object({
