@@ -157,6 +157,16 @@ vnis = {
             }
           }
         }
+        11 = {
+          vni                  = 9011
+          vlan_id              = 11
+          anycast_gw_ip        = "10.11.0.5"
+          anycast_gw_cidr      = 16
+          anycast_mac          = "bc:24:11:00:69:00"
+          advertise_default_gw = false
+          advertise_svi_ip     = false
+          export_ipv4_unicast  = true
+        }
       }
     }
 
