@@ -98,6 +98,7 @@ leaves = {
 ```
 
 - `id` drives VM ID (`700 + id`), BGP local AS, loopback addresses, and management address.
+- Fabric NIC MACs are derived as `02:<four-digit local-AS>:<four-digit node-id>:<interface>`; the decimal fields are split into octets without hexadecimal conversion (for example, node `11` uses `00:11`).
 - `hypervisor_node` is required for VMs.
 - `is_vm = true` creates vm.
 - `started = true` powers the VM on. It defaults to `false`, allowing each leaf,

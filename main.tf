@@ -21,33 +21,25 @@ module "create_fabric_vms" {
 }
 
 locals {
-  fabric_macs = {
-    for node in concat(values(var.fabric.leaves), values(var.fabric.border_leaves), values(var.fabric.fabric_ext_leaves), values(var.fabric.leaves_greatfox)) :
-    node.id => {
-      for interface_number in range(1, 4) :
-      "eth${interface_number}" => format("02:70:%02x:%02x:00:%02x", floor(node.id / 256), node.id % 256, interface_number)
-    }
+  fabric_node_groups = {
+    leaves            = var.fabric.leaves
+    border_leaves     = var.fabric.border_leaves
+    fabric_ext_leaves = var.fabric.fabric_ext_leaves
+    leaves_greatfox   = var.fabric.leaves_greatfox
   }
 
   fabric = merge(var.fabric, {
-    leaves = {
-      for name, node in var.fabric.leaves : name => merge(node, {
-        fabric_macs = local.fabric_macs[node.id]
-      })
-    }
-    border_leaves = {
-      for name, node in var.fabric.border_leaves : name => merge(node, {
-        fabric_macs = local.fabric_macs[node.id]
-      })
-    }
-    fabric_ext_leaves = {
-      for name, node in var.fabric.fabric_ext_leaves : name => merge(node, {
-        fabric_macs = local.fabric_macs[node.id]
-      })
-    }
-    leaves_greatfox = {
-      for name, node in var.fabric.leaves_greatfox : name => merge(node, {
-        fabric_macs = local.fabric_macs[node.id]
+    for group_name, nodes in local.fabric_node_groups : group_name => {
+      for name, node in nodes : name => merge(node, {
+        fabric_macs = {
+          for interface_number in range(1, 4) :
+          "eth${interface_number}" => join(":", regexall("..", format(
+            "02%04d%04d%02d",
+            var.fabric.defaults.underlay_local_as_base + node.id,
+            node.id,
+            interface_number,
+          )))
+        }
       })
     }
   })
