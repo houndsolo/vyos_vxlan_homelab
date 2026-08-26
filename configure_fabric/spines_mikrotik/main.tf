@@ -1,0 +1,97 @@
+locals {
+  all_leaves = merge(
+    var.fabric.leaves,
+    var.fabric.border_leaves,
+    var.fabric.leaves_greatfox,
+    var.fabric.fabric_ext_leaves,
+  )
+}
+
+resource "routeros_ipv6_firewall_addr_list" "fabric_li" {
+  address = var.fabric.defaults.ipv6_underlay_prefix
+  list    = "vxlan_underlay_ipv6"
+}
+
+resource "routeros_routing_bfd_configuration" "bfd_to_overlay" {
+  depends_on = [resource.routeros_ipv6_firewall_addr_list.fabric_li]
+  forbid_bfd = false
+  address_list = "vxlan_underlay_ipv6"
+}
+
+resource "routeros_routing_bfd_configuration" "bfd_to_leaves" {
+  interfaces = [
+    for leaf in values(local.all_leaves) :
+    leaf.spine_uplink == null
+      ? "ether${leaf.id}"
+      : leaf.spine_uplink
+  ]
+
+  forbid_bfd = false
+}
+
+resource "routeros_routing_bgp_instance" "main" {
+  as = var.node.as
+  name = "default"
+  router_id = "rid-spine"
+}
+
+resource "routeros_routing_bgp_template" "underlay" {
+  name = "SPINE-eBGP-v6-LL"
+  as = var.node.as
+  address_families = "ipv6"
+  nexthop_choice = "force-self"
+  output {
+    network   = "BGP-LOOPBACKS"
+  }
+}
+
+resource "routeros_routing_bgp_connection" "underlay" {
+  for_each = local.all_leaves
+  name         = "underlay-leaf-${each.value.id}"
+  as = var.node.as
+  address_families = "ipv6"
+  instance = "default"
+  local {
+    role = "ebgp"
+    address = each.value.spine_uplink == null ? "ether${each.value.id}" : each.value.spine_uplink
+  }
+  templates = ["SPINE-eBGP-v6-LL"]
+  output {
+    network   = "BGP-LOOPBACKS"
+  }
+}
+
+resource "routeros_routing_filter_rule" "evpn_chain" {
+  chain    = "EVPN-IN"
+  rule     = "set scope-target 40; accept;"
+  disabled = false
+}
+
+resource "routeros_routing_bgp_template" "overlay" {
+  name = "SPINE-iBGP-EVPN"
+  as = var.fabric.defaults.bgp_system_as
+  address_families = "evpn"
+  nexthop_choice = "propagate"
+  input {
+    filter = "EVPN-IN"
+  }
+}
+
+resource "routeros_routing_bgp_connection" "overlay" {
+  for_each = local.all_leaves
+  name         = "overlay-leaf-${each.value.id}"
+  as = var.fabric.defaults.bgp_system_as
+  address_families = "evpn"
+  instance = "default"
+  input {
+    filter = "EVPN-IN"
+  }
+  local {
+    role = "ibgp-rr"
+    address  = cidrhost(var.fabric.defaults.ipv6_underlay_prefix, parseint(tostring(var.node.id), 16))
+  }
+  remote {
+    address  = cidrhost(var.fabric.defaults.ipv6_underlay_prefix, parseint(tostring(each.value.id), 16))
+  }
+  templates = ["SPINE-iBGP-EVPN"]
+}

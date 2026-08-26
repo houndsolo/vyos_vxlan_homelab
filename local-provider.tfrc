@@ -3,14 +3,14 @@ provider_installation {
     path = "/home/mechanic/.terraform.d/plugins"
 
     include = [
-      "registry.terraform.io/echowings/vyos-rolling",
+      "registry.terraform.io/houndsolo/vyos-rolling",
       "local/mechanic/proxmox",
     ]
   }
 
   direct {
     exclude = [
-      "registry.terraform.io/echowings/vyos-rolling",
+      "registry.terraform.io/houndsolo/vyos-rolling",
       "local/mechanic/proxmox",
     ]
   }

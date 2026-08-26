@@ -43,9 +43,11 @@ variable "fabric" {
     })), {})
     spines = map(object({
       id              = number
+      as              = number
       uplink_if       = optional(string, null)
       hypervisor_node = optional(string, null)
-      hosturl        = string
+      hosturl         = string
+      configure          = optional(bool, true)
     }))
 
     leaves = map(object({
@@ -56,6 +58,7 @@ variable "fabric" {
       started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
       underlay_peer_vlan = optional(number, null)
+      spine_uplink       = optional(string, null)
     }))
     fabric_ext_leaves = map(object({
       id                 = number
@@ -65,6 +68,7 @@ variable "fabric" {
       started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
       underlay_peer_vlan = optional(number, null)
+      spine_uplink       = optional(string, null)
     }))
     border_leaves = map(object({
       id                 = number
@@ -74,6 +78,7 @@ variable "fabric" {
       started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
       underlay_peer_vlan = optional(number, null)
+      spine_uplink       = optional(string, null)
     }))
     leaves_greatfox = map(object({
       id                 = number
@@ -83,6 +88,7 @@ variable "fabric" {
       started            = optional(bool, false)
       underlay_bridges   = optional(list(string), null)
       underlay_peer_vlan = optional(number, null)
+      spine_uplink       = optional(string, null)
     }))
   })
 

@@ -51,8 +51,8 @@ resource "vyos_interfaces_bridge_member_interface" "br0_vxlan0" {
 }
 
 resource "vyos_interfaces_pseudo_ethernet" "anycast_gateway_peth" {
-  for_each         = var.l2_vnis
-  depends_on       = [
+  for_each = var.l2_vnis
+  depends_on = [
     vyos_interfaces_bridge_member_interface.br0_vxlan0,
     vyos_interfaces_bridge_vif.vxlan_bridge_L2
   ]

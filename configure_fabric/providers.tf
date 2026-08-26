@@ -1,4 +1,5 @@
 provider "routeros" {
+  alias    = "spines"
   for_each = var.fabric.spines
   hosturl  = each.value.hosturl
   username = "admin"

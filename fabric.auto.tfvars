@@ -44,15 +44,17 @@ fabric = {
   spines = {
     #mikrotik 326
     rtr1 = {
-      id = 1
+      id        = 1
       uplink_if = "eth1"
-      hosturl = "https://10.20.0.5"
+      hosturl   = "http://10.20.0.5"
+      as        = 810
     }
     #mikrotik 326
     rtr2 = {
-      id = 2
+      id        = 2
       uplink_if = "eth2"
-      hosturl = "https://10.20.0.6"
+      hosturl   = "http://10.20.0.6"
+      as        = 810
     }
   }
 
@@ -76,6 +78,7 @@ fabric = {
     fabric-2 = {
       id    = 42
       is_vm = false
+      spine_uplink = "ether10"
     }
 
   }
