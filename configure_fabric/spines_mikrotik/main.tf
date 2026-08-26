@@ -35,6 +35,12 @@ resource "routeros_routing_bgp_instance" "main" {
   router_id = "rid-spine"
 }
 
+resource "routeros_ipv6_nd_prefix" "test" {
+  for_each = local.all_leaves
+  prefix             = "none"
+  interface          = each.value.spine_uplink == null ? "ether${each.value.id}" : each.value.spine_uplink
+}
+
 resource "routeros_routing_bgp_template" "underlay" {
   name = "SPINE-eBGP-v6-LL"
   as = var.node.as
@@ -51,6 +57,7 @@ resource "routeros_routing_bgp_connection" "underlay" {
   as = var.node.as
   address_families = "ipv6"
   instance = "default"
+  use_bfd = true
   local {
     role = "ebgp"
     address = each.value.spine_uplink == null ? "ether${each.value.id}" : each.value.spine_uplink
@@ -83,6 +90,7 @@ resource "routeros_routing_bgp_connection" "overlay" {
   as = var.fabric.defaults.bgp_system_as
   address_families = "evpn"
   instance = "default"
+  use_bfd = true
   input {
     filter = "EVPN-IN"
   }
