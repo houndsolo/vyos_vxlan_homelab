@@ -36,8 +36,6 @@ provider "vyos" {
 }
 
 module "configure_dhcp" {
-  # Set configure = false for one apply before removing a node. This keeps its
-  # provider instance available while OpenTofu destroys the node configuration.
   for_each = { for name, node in var.dhcp.nodes : name => node if node.configure }
   source   = "./configure_dhcp"
 

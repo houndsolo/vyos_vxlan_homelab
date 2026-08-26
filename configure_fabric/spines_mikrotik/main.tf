@@ -104,7 +104,3 @@ resource "routeros_routing_bgp_connection" "overlay" {
   templates = ["SPINE-iBGP-EVPN"]
 }
 
-moved {
-  from = routeros_ipv6_firewall_addr_list.fabric_li
-  to   = routeros_ipv6_firewall_addr_list.fabric_loopbacks_ipv6
-}
