@@ -1,7 +1,7 @@
 resource "vyos_interfaces_vxlan" "vxlan_interface" {
   identifier = { vxlan = "vxlan0" }
   #source_interface = var.node.vxlan_source_interface
-  source_address = var.node.vxlan_loopback_v6_net
+  source_address = var.node.fabric_loopback_v6_net
   mac            = format("00:13:37:00:00:%02d", var.node.id)
   mtu            = var.vxlan.mtu
   ip = {
@@ -27,7 +27,7 @@ resource "vyos_interfaces_vxlan" "vxlan_interface" {
 #  for_each         = var.l2_vnis
 #  identifier       = { vxlan = "vxlan${each.value.vni}" }
 #  source_interface = var.node.vxlan_source_interface
-#  source_address   = var.node.vxlan_loopback_v6_net
+#  source_address   = var.node.fabric_loopback_v6_net
 #  mtu              = var.vxlan.mtu
 #  ip = {
 #    disable_arp_filter        = var.vxlan.disable_arp_filter
@@ -55,7 +55,7 @@ resource "vyos_interfaces_vxlan" "vxlan_interface" {
 #  identifier       = { vxlan = "vxlan${each.value.vni}" }
 #  description      = "Layer 3 for ${each.value.vrf} vrf"
 #  source_interface = var.node.vxlan_source_interface
-#  source_address   = var.node.vxlan_loopback_v6_net
+#  source_address   = var.node.fabric_loopback_v6_net
 #  mtu              = var.vxlan.mtu
 #  ip = {
 #    disable_arp_filter        = var.vxlan.disable_arp_filter

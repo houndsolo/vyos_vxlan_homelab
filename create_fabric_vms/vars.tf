@@ -3,8 +3,8 @@ variable "fabric" {
     defaults = object({
       bgp_system_as                     = number
       underlay_local_as_base            = number
-      ipv4_loopback_prefix              = string
-      ipv6_underlay_prefix              = string
+      ipv4_fabric_loopback_prefix       = string
+      ipv6_fabric_loopback_prefix       = string
       vxlan_source_interface            = string
       l2_service_bridge_id              = number
       vyos_mgmt_prefix                  = string

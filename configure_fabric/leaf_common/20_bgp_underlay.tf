@@ -7,7 +7,7 @@ resource "vyos_protocols_bgp" "enable_bgp" {
 
 resource "vyos_protocols_bgp_parameters" "set_router_id" {
   depends_on       = [vyos_protocols_bgp.enable_bgp]
-  router_id        = var.node.vxlan_loopback_net
+  router_id        = var.node.fabric_loopback_v4_net
   fast_convergence = true
 }
 
@@ -61,5 +61,5 @@ resource "vyos_protocols_bgp_neighbor" "bgp_underlay_neighbors" {
 
 resource "vyos_protocols_bgp_address_family_ipv6_unicast_network" "redistribute_loopback" {
   depends_on = [vyos_protocols_bgp.enable_bgp]
-  identifier = { network = var.node.vxlan_loopback_v6 }
+  identifier = { network = var.node.fabric_loopback_v6 }
 }

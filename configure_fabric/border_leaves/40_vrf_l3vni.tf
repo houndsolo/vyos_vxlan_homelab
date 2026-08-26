@@ -12,7 +12,7 @@ resource "vyos_vrf_name" "create_vrfs" {
       system_as = var.node.bgp_system_as
 
       parameters = {
-        router_id = var.node.vxlan_loopback_net
+        router_id = var.node.fabric_loopback_v4_net
 
         bestpath = {
           as_path = { multipath_relax = true }
@@ -31,7 +31,7 @@ resource "vyos_vrf_name" "create_vrfs" {
 
         l2vpn_evpn = merge(
           {
-            rd = "${var.node.vxlan_loopback_net}:${each.value.vni}"
+            rd = "${var.node.fabric_loopback_v4_net}:${each.value.vni}"
 
             route_target = {
               import = each.value.evpn_rt_imports

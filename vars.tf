@@ -3,8 +3,8 @@ variable "fabric" {
     defaults = object({
       bgp_system_as                     = number
       underlay_local_as_base            = number
-      ipv4_loopback_prefix              = string
-      ipv6_underlay_prefix              = string
+      ipv4_fabric_loopback_prefix       = string
+      ipv6_fabric_loopback_prefix       = string
       vxlan_source_interface            = string
       l2_service_bridge_id              = number
       vyos_mgmt_prefix                  = string
@@ -47,7 +47,7 @@ variable "fabric" {
       uplink_if       = optional(string, null)
       hypervisor_node = optional(string, null)
       hosturl         = string
-      configure          = optional(bool, true)
+      configure       = optional(bool, true)
     }))
 
     leaves = map(object({
@@ -94,14 +94,14 @@ variable "fabric" {
 
   validation {
     condition = (
-      can(cidrhost(var.fabric.defaults.ipv4_loopback_prefix, 0)) &&
-      !strcontains(var.fabric.defaults.ipv4_loopback_prefix, ":") &&
-      can(cidrhost(var.fabric.defaults.ipv6_underlay_prefix, 0)) &&
-      strcontains(var.fabric.defaults.ipv6_underlay_prefix, ":") &&
+      can(cidrhost(var.fabric.defaults.ipv4_fabric_loopback_prefix, 0)) &&
+      !strcontains(var.fabric.defaults.ipv4_fabric_loopback_prefix, ":") &&
+      can(cidrhost(var.fabric.defaults.ipv6_fabric_loopback_prefix, 0)) &&
+      strcontains(var.fabric.defaults.ipv6_fabric_loopback_prefix, ":") &&
       can(cidrhost(var.fabric.defaults.vyos_mgmt_prefix, 0)) &&
       !strcontains(var.fabric.defaults.vyos_mgmt_prefix, ":")
     )
-    error_message = "ipv4_loopback_prefix and vyos_mgmt_prefix must be valid IPv4 CIDRs; ipv6_underlay_prefix must be a valid IPv6 CIDR."
+    error_message = "ipv4_fabric_loopback_prefix and vyos_mgmt_prefix must be valid IPv4 CIDRs; ipv6_fabric_loopback_prefix must be a valid IPv6 CIDR."
   }
 
   validation {
@@ -116,8 +116,8 @@ variable "fabric" {
       ) :
       id == floor(id) && id > 0 &&
       var.fabric.defaults.underlay_local_as_base + id <= 4294967295 &&
-      can(cidrhost(var.fabric.defaults.ipv4_loopback_prefix, id)) &&
-      can(cidrhost(var.fabric.defaults.ipv6_underlay_prefix, parseint(tostring(id), 16))) &&
+      can(cidrhost(var.fabric.defaults.ipv4_fabric_loopback_prefix, id)) &&
+      can(cidrhost(var.fabric.defaults.ipv6_fabric_loopback_prefix, parseint(tostring(id), 16))) &&
       can(cidrhost(var.fabric.defaults.vyos_mgmt_prefix, id))
     ])
     error_message = "Every fabric node ID must be a positive integer that fits the derived ASN and configured loopback, underlay, and management prefixes."

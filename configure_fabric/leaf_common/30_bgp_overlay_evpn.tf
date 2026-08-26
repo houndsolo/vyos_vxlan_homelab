@@ -9,7 +9,7 @@ resource "vyos_protocols_bgp_address_family_l2vpn_evpn_vni" "l2vni_bgp_global_co
   for_each             = var.l2_vnis
   depends_on           = [vyos_protocols_bgp_address_family_l2vpn_evpn.l2vpn_evpn_config]
   identifier           = { vni = each.value.vni }
-  rd                   = "${var.node.vxlan_loopback_net}:${tostring(each.value.vni)}"
+  rd                   = "${var.node.fabric_loopback_v4_net}:${tostring(each.value.vni)}"
   advertise_default_gw = each.value.advertise_default_gw
   advertise_svi_ip     = each.value.advertise_svi_ip
 }
@@ -38,9 +38,14 @@ resource "vyos_protocols_bgp_peer_group" "peer_group_spine_overlay" {
   }
 }
 
-resource "vyos_protocols_bgp_neighbor" "vxlan_peering" {
+resource "vyos_protocols_bgp_neighbor" "evpn_peering" {
   for_each   = var.spines
   depends_on = [vyos_protocols_bgp_peer_group.peer_group_spine_overlay]
-  identifier = { neighbor = each.value.vxlan_loopback_v6_net }
+  identifier = { neighbor = each.value.fabric_loopback_v6_net }
   peer_group = "spine_overlay"
+}
+
+moved {
+  from = vyos_protocols_bgp_neighbor.vxlan_peering
+  to   = vyos_protocols_bgp_neighbor.evpn_peering
 }

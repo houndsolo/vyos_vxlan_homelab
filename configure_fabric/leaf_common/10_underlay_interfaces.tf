@@ -8,8 +8,8 @@ locals {
 resource "vyos_interfaces_dummy" "dummy_interface" {
   identifier = { dummy = var.node.vxlan_source_interface }
   address = [
-    var.node.vxlan_loopback,
-    var.node.vxlan_loopback_v6
+    var.node.fabric_loopback_v4,
+    var.node.fabric_loopback_v6
   ]
   mtu = var.vxlan.outer_mtu
 }

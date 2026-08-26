@@ -2,8 +2,8 @@ fabric = {
   defaults = {
     bgp_system_as                     = 700
     underlay_local_as_base            = 700
-    ipv4_loopback_prefix              = "10.255.240.0/24"
-    ipv6_underlay_prefix              = "fd69:255:240::/64"
+    ipv4_fabric_loopback_prefix       = "10.255.240.0/24"
+    ipv6_fabric_loopback_prefix       = "fd69:255:240::/64"
     vxlan_source_interface            = "dum240"
     l2_service_bridge_id              = 9000
     vyos_mgmt_prefix                  = "10.20.10.0/24"
@@ -76,8 +76,8 @@ fabric = {
     #  started            = true
     #}
     fabric-2 = {
-      id    = 42
-      is_vm = false
+      id           = 42
+      is_vm        = false
       spine_uplink = "ether10"
     }
 

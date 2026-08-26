@@ -18,10 +18,10 @@ variable "node" {
     hostname               = string
     l2_svd                 = number
     underlay_local_as      = number
-    vxlan_loopback         = string
-    vxlan_loopback_net     = string
-    vxlan_loopback_v6      = string
-    vxlan_loopback_v6_net  = string
+    fabric_loopback_v4     = string
+    fabric_loopback_v4_net = string
+    fabric_loopback_v6     = string
+    fabric_loopback_v6_net = string
     bgp_system_as          = number
     vxlan_source_interface = string
     fabric_macs            = optional(map(string), null)
@@ -38,10 +38,10 @@ variable "manage_fabric_hw_ids" {
 variable "spines" {
   description = "Spine inventory with overlay peering addresses derived by configure_fabric."
   type = map(object({
-    id                    = number
-    uplink_if             = string
-    vxlan_loopback_v6_net = string
-    hypervisor_node       = optional(string, null)
+    id                     = number
+    uplink_if              = string
+    fabric_loopback_v6_net = string
+    hypervisor_node        = optional(string, null)
   }))
 }
 
