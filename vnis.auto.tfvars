@@ -20,6 +20,7 @@ vnis = [
       "700:6666",
       "700:6900",
       "700:6600",
+      "700:6700",
       "700:6200",
     ]
     evpn_rt_exports = [
@@ -29,7 +30,7 @@ vnis = [
   {
     vlan_id         = 66
     vni             = 6600
-    roles           = ["pve", "external_l2"]
+    roles           = ["pve"]
     vrf             = "lylat_service"
     vrf_table       = 1000
     ipv4_rt_imports = "700:6200 700:6900"
@@ -99,7 +100,7 @@ vnis = [
     vrf       = "lylat_lan"
     vrf_table = 1337
     #anycast_mac          = "bc:24:11:00:69:00"
-    ipv4_rt_imports = "700:6600 700:6200"
+    ipv4_rt_imports = "700:6600 700:6200 700:6700"
     ipv4_rt_exports = "700:6900"
     #border_leaf_ipv4_vrf_imports = [
     #  "lylat_service",
@@ -115,6 +116,7 @@ vnis = [
       "700:6900",
       "700:6600",
       "700:6200",
+      "700:6700",
       "700:6666",
     ]
     evpn_rt_exports = [
@@ -172,7 +174,7 @@ vnis = [
   {
     vlan_id         = 62
     vni             = 6200
-    roles           = ["pve", "external_l2"]
+    roles           = ["pve"]
     vrf             = "lylat_infra"
     vrf_table       = 700
     ipv4_rt_imports = "700:6600 700:6900"
@@ -212,6 +214,50 @@ vnis = [
           scope = {
             ranges = {
               0 = { start = "10.2.5.1", stop = "10.2.5.99" }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  {
+    vlan_id         = 67
+    vni             = 6700
+    roles           = ["external_l2"]
+    vrf             = "lylat_infra"
+    vrf_table       = 700
+    ipv4_rt_imports = "700:6600 700:6900"
+    ipv4_rt_exports = "700:6700"
+    border_leaf_ipv4_vpn_import_bool = true
+    export_vpn_ipv4                  = true
+    evpn_rt_imports = [
+      "700:6700",
+      "700:6900",
+      "700:6600",
+      "700:6666",
+    ]
+    evpn_rt_exports = [
+      "700:6700",
+    ]
+    #redistribute_ipv4 = {
+    #  connected = {}
+    #}
+
+    l2 = {
+      12 = {
+        vni                  = 9012
+        vlan_id              = 12
+        anycast_gw_ip        = "10.12.0.5"
+        anycast_gw_cidr      = 16
+        anycast_mac          = "bc:24:11:00:62:00"
+        advertise_default_gw = false
+        advertise_svi_ip     = false
+        export_ipv4_unicast  = true
+        dhcp = {
+          scope = {
+            ranges = {
+              0 = { start = "10.12.5.1", stop = "10.12.5.99" }
             }
           }
         }

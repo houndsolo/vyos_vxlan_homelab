@@ -2,6 +2,11 @@ locals {
   all_leaves = var.fabric.nodes.leaves
 }
 
+resource "routeros_ipv6_firewall_addr_list" "BGP-LOOPBACKS" {
+  address = cidrhost(var.fabric.defaults.ipv6_fabric_loopback_prefix, parseint(tostring(var.node.id), 16))
+  list    = "BGP-LOOPBACKS"
+}
+
 resource "routeros_ipv6_firewall_addr_list" "fabric_loopbacks_ipv6" {
   address = var.fabric.defaults.ipv6_fabric_loopback_prefix
   list    = "fabric_loopbacks_ipv6"
