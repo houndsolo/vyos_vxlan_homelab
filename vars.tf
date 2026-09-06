@@ -41,55 +41,28 @@ variable "fabric" {
       is_vm            = optional(bool, true)
       underlay_bridges = optional(list(string), null)
     })), {})
-    spines = map(object({
-      id              = number
-      as              = number
-      uplink_if       = optional(string, null)
-      hypervisor_node = optional(string, null)
-      hosturl         = string
-      configure       = optional(bool, true)
-    }))
-
-    leaves = map(object({
-      id                 = number
-      hypervisor_node    = optional(string, null)
-      configure          = optional(bool, true)
-      is_vm              = optional(bool, true)
-      started            = optional(bool, false)
-      underlay_bridges   = optional(list(string), null)
-      underlay_peer_vlan = optional(number, null)
-      spine_uplink       = optional(string, null)
-    }))
-    fabric_ext_leaves = map(object({
-      id                 = number
-      configure          = optional(bool, true)
-      hypervisor_node    = optional(string, null)
-      is_vm              = optional(bool, true)
-      started            = optional(bool, false)
-      underlay_bridges   = optional(list(string), null)
-      underlay_peer_vlan = optional(number, null)
-      spine_uplink       = optional(string, null)
-    }))
-    border_leaves = map(object({
-      id                 = number
-      configure          = optional(bool, true)
-      hypervisor_node    = optional(string, null)
-      is_vm              = optional(bool, true)
-      started            = optional(bool, false)
-      underlay_bridges   = optional(list(string), null)
-      underlay_peer_vlan = optional(number, null)
-      spine_uplink       = optional(string, null)
-    }))
-    leaves_greatfox = map(object({
-      id                 = number
-      hypervisor_node    = optional(string, null)
-      configure          = optional(bool, true)
-      is_vm              = optional(bool, true)
-      started            = optional(bool, false)
-      underlay_bridges   = optional(list(string), null)
-      underlay_peer_vlan = optional(number, null)
-      spine_uplink       = optional(string, null)
-    }))
+    nodes = object({
+      spines = map(object({
+        id              = number
+        as              = number
+        uplink_if       = optional(string, null)
+        hypervisor_node = optional(string, null)
+        hosturl         = string
+        configure       = optional(bool, true)
+      }))
+      leaves = map(object({
+        id                 = number
+        role               = string
+        proxmox_target     = optional(string, "pve")
+        hypervisor_node    = optional(string, null)
+        configure          = optional(bool, true)
+        is_vm              = optional(bool, true)
+        started            = optional(bool, false)
+        underlay_bridges   = optional(list(string), null)
+        underlay_peer_vlan = optional(number, null)
+        spine_uplink       = optional(string, null)
+      }))
+    })
   })
 
   validation {
@@ -108,11 +81,8 @@ variable "fabric" {
     condition = alltrue([
       for id in concat(
         [for node in values(var.fabric.evpn_rr) : node.id],
-        [for node in values(var.fabric.spines) : node.id],
-        [for node in values(var.fabric.leaves) : node.id],
-        [for node in values(var.fabric.fabric_ext_leaves) : node.id],
-        [for node in values(var.fabric.border_leaves) : node.id],
-        [for node in values(var.fabric.leaves_greatfox) : node.id],
+        [for node in values(var.fabric.nodes.spines) : node.id],
+        [for node in values(var.fabric.nodes.leaves) : node.id],
       ) :
       id == floor(id) && id > 0 &&
       var.fabric.defaults.underlay_local_as_base + id <= 4294967295 &&
@@ -126,20 +96,31 @@ variable "fabric" {
   validation {
     condition = length(distinct(concat(
       [for node in values(var.fabric.evpn_rr) : node.id],
-      [for node in values(var.fabric.spines) : node.id],
-      [for node in values(var.fabric.leaves) : node.id],
-      [for node in values(var.fabric.fabric_ext_leaves) : node.id],
-      [for node in values(var.fabric.border_leaves) : node.id],
-      [for node in values(var.fabric.leaves_greatfox) : node.id],
+      [for node in values(var.fabric.nodes.spines) : node.id],
+      [for node in values(var.fabric.nodes.leaves) : node.id],
       ))) == length(concat(
       [for node in values(var.fabric.evpn_rr) : node.id],
-      [for node in values(var.fabric.spines) : node.id],
-      [for node in values(var.fabric.leaves) : node.id],
-      [for node in values(var.fabric.fabric_ext_leaves) : node.id],
-      [for node in values(var.fabric.border_leaves) : node.id],
-      [for node in values(var.fabric.leaves_greatfox) : node.id],
+      [for node in values(var.fabric.nodes.spines) : node.id],
+      [for node in values(var.fabric.nodes.leaves) : node.id],
     ))
     error_message = "Fabric node IDs must be unique across all node-role maps."
+  }
+
+  validation {
+    condition = alltrue([
+      for node in values(var.fabric.nodes.leaves) :
+      contains(["pve", "external_l2", "external_l3"], node.role)
+    ])
+    error_message = "Leaf roles must be pve, external_l2, or external_l3."
+  }
+
+  validation {
+    condition = alltrue([
+      for node in values(var.fabric.nodes.leaves) :
+      contains(["pve", "greatfox"], node.proxmox_target) &&
+      (!node.is_vm || node.hypervisor_node != null)
+    ])
+    error_message = "Leaf proxmox_target must be pve or greatfox, and VM leaves need a hypervisor_node."
   }
 
   validation {
@@ -177,100 +158,65 @@ variable "dns" {
 }
 
 variable "vnis" {
-  type = object({
-    external_l3 = map(object({
-      vni                              = number
-      vrf                              = string
-      vrf_table                        = number
-      vlan_id                          = number
-      ipv4_rt_imports                  = optional(string, null)
-      ipv4_rt_exports                  = optional(string, null)
-      border_leaf_ipv4_rt_imports      = optional(string, null)
-      border_leaf_ipv4_rt_exports      = optional(string, null)
-      border_leaf_ipv4_vpn_import_bool = optional(bool, false)
-      border_leaf_ipv4_vrf_imports     = optional(list(string), null)
-      evpn_rt_imports                  = optional(list(string), [])
-      evpn_rt_exports                  = optional(list(string), [])
-      ext_l3                           = optional(bool, false)
-      export_vpn_ipv4                  = optional(bool, false)
-      anycast_mac                      = optional(string, null)
-      redistribute_ipv4 = optional(object({
-        connected = optional(object({ route_map = optional(string) }), null)
-        static    = optional(object({}), null)
-      }))
-      l2 = optional(map(object({
-        vni                  = number
-        vlan_id              = number
-        anycast_gw_ip        = string
-        anycast_gw_cidr      = number
-        anycast_mac          = string
-        advertise_default_gw = optional(bool, false)
-        advertise_svi_ip     = optional(bool, false)
-        export_ipv4_unicast  = optional(bool, false)
-        dhcp = optional(object({
-          scope = optional(object({
-            ranges = map(object({
-              start = string
-              stop  = string
-            }))
-            name_servers  = optional(list(string))
-            domain_name   = optional(string)
-            domain_search = optional(list(string))
-            lease_seconds = optional(number)
-            authoritative = optional(bool)
-          }))
-        }))
-      })), {})
+  type = list(object({
+    roles                            = set(string)
+    vni                              = number
+    vrf                              = string
+    vrf_table                        = number
+    vlan_id                          = number
+    ipv4_rt_imports                  = optional(string, null)
+    ipv4_rt_exports                  = optional(string, null)
+    border_leaf_ipv4_rt_imports      = optional(string, null)
+    border_leaf_ipv4_rt_exports      = optional(string, null)
+    border_leaf_ipv4_vpn_import_bool = optional(bool, false)
+    border_leaf_ipv4_vrf_imports     = optional(list(string), null)
+    evpn_rt_imports                  = optional(list(string), [])
+    evpn_rt_exports                  = optional(list(string), [])
+    ext_l3                           = optional(bool, false)
+    export_vpn_ipv4                  = optional(bool, false)
+    anycast_mac                      = optional(string, null)
+    redistribute_ipv4 = optional(object({
+      connected = optional(object({ route_map = optional(string) }), null)
+      static    = optional(object({}), null)
     }))
-    l3 = map(object({
-      vni                              = number
-      vrf                              = string
-      vrf_table                        = number
-      vlan_id                          = number
-      ipv4_rt_imports                  = optional(string, null)
-      ipv4_rt_exports                  = optional(string, null)
-      border_leaf_ipv4_rt_imports      = optional(string, null)
-      border_leaf_ipv4_rt_exports      = optional(string, null)
-      border_leaf_ipv4_vpn_import_bool = optional(bool, false)
-      border_leaf_ipv4_vrf_imports     = optional(list(string), null)
-      evpn_rt_imports                  = optional(list(string), [])
-      evpn_rt_exports                  = optional(list(string), [])
-      ext_l3                           = optional(bool, false)
-      export_vpn_ipv4                  = optional(bool, false)
-      anycast_mac                      = optional(string, null)
-      redistribute_ipv4 = optional(object({
-        connected = optional(object({ route_map = optional(string) }), null)
-        static    = optional(object({}), null)
-      }))
-      l2 = optional(map(object({
-        vni                  = number
-        vlan_id              = number
-        anycast_gw_ip        = string
-        anycast_gw_cidr      = number
-        anycast_mac          = string
-        advertise_default_gw = optional(bool, false)
-        advertise_svi_ip     = optional(bool, false)
-        export_ipv4_unicast  = optional(bool, false)
-        dhcp = optional(object({
-          scope = optional(object({
-            ranges = map(object({
-              start = string
-              stop  = string
-            }))
-            name_servers  = optional(list(string))
-            domain_name   = optional(string)
-            domain_search = optional(list(string))
-            lease_seconds = optional(number)
-            authoritative = optional(bool)
+    l2 = optional(map(object({
+      vni                  = number
+      vlan_id              = number
+      anycast_gw_ip        = string
+      anycast_gw_cidr      = number
+      anycast_mac          = string
+      advertise_default_gw = optional(bool, false)
+      advertise_svi_ip     = optional(bool, false)
+      export_ipv4_unicast  = optional(bool, false)
+      dhcp = optional(object({
+        scope = optional(object({
+          ranges = map(object({
+            start = string
+            stop  = string
           }))
+          name_servers  = optional(list(string))
+          domain_name   = optional(string)
+          domain_search = optional(list(string))
+          lease_seconds = optional(number)
+          authoritative = optional(bool)
         }))
-      })), {})
-    }))
-  })
+      }))
+    })), {})
+  }))
+
+  validation {
+    condition = alltrue([
+      for l3 in var.vnis :
+      length(l3.roles) > 0 && alltrue([
+        for role in l3.roles : contains(["pve", "external_l2", "external_l3"], role)
+      ])
+    ])
+    error_message = "Every L3VNI needs a nonempty set of valid leaf roles."
+  }
 
   validation {
     condition = alltrue(flatten([
-      for l3 in values(var.vnis.l3) : concat(
+      for l3 in var.vnis : concat(
         [l3.vni >= 1 && l3.vni <= 16777215, l3.vrf_table >= 1 && l3.vrf_table <= 4294967295, trimspace(l3.vrf) != ""],
         [for l2 in values(l3.l2) :
           l2.vni >= 1 && l2.vni <= 16777215 &&
@@ -287,11 +233,11 @@ variable "vnis" {
 
   validation {
     condition = length(distinct(concat(
-      [for l3 in values(var.vnis.l3) : l3.vni],
-      flatten([for l3 in values(var.vnis.l3) : [for l2 in values(l3.l2) : l2.vni]]),
+      [for l3 in var.vnis : l3.vni],
+      flatten([for l3 in var.vnis : [for l2 in values(l3.l2) : l2.vni]]),
       ))) == length(concat(
-      [for l3 in values(var.vnis.l3) : l3.vni],
-      flatten([for l3 in values(var.vnis.l3) : [for l2 in values(l3.l2) : l2.vni]]),
+      [for l3 in var.vnis : l3.vni],
+      flatten([for l3 in var.vnis : [for l2 in values(l3.l2) : l2.vni]]),
     ))
     error_message = "Every L2VNI and L3VNI must be unique."
   }

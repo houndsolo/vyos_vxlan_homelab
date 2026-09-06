@@ -1,10 +1,5 @@
 locals {
-  all_leaves = merge(
-    var.fabric.leaves,
-    var.fabric.border_leaves,
-    var.fabric.leaves_greatfox,
-    var.fabric.fabric_ext_leaves,
-  )
+  all_leaves = var.fabric.nodes.leaves
 }
 
 resource "routeros_ipv6_firewall_addr_list" "fabric_loopbacks_ipv6" {
@@ -36,9 +31,9 @@ resource "routeros_routing_bgp_instance" "main" {
 }
 
 resource "routeros_ipv6_nd_prefix" "test" {
-  for_each = local.all_leaves
-  prefix             = "none"
-  interface          = each.value.spine_uplink == null ? "ether${each.value.id}" : each.value.spine_uplink
+  for_each  = local.all_leaves
+  prefix    = "none"
+  interface = each.value.spine_uplink == null ? "ether${each.value.id}" : each.value.spine_uplink
 }
 
 resource "routeros_routing_bgp_template" "underlay" {
@@ -56,8 +51,8 @@ resource "routeros_routing_bgp_connection" "underlay" {
   name             = "underlay-leaf-${each.value.id}"
   as               = var.node.as
   address_families = "ipv6"
-  instance = "default"
-  use_bfd = true
+  instance         = "default"
+  use_bfd          = true
   local {
     role    = "ebgp"
     address = each.value.spine_uplink == null ? "ether${each.value.id}" : each.value.spine_uplink
@@ -89,8 +84,8 @@ resource "routeros_routing_bgp_connection" "overlay" {
   name             = "overlay-leaf-${each.value.id}"
   as               = var.fabric.defaults.bgp_system_as
   address_families = "evpn"
-  instance = "default"
-  use_bfd = true
+  instance         = "default"
+  use_bfd          = true
   input {
     filter = "EVPN-IN"
   }

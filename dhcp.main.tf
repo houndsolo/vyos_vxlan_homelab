@@ -1,6 +1,6 @@
 locals {
   dhcp_segments = {
-    for l2 in flatten([for l3 in values(var.vnis.l3) : values(l3.l2)]) :
+    for l2 in flatten([for l3 in values(local.vnis.l3) : values(l3.l2)]) :
     tostring(l2.vni) => l2 if l2.dhcp != null
   }
   dhcp_vnis = sort(keys(local.dhcp_segments))

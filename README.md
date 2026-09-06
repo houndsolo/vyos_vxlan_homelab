@@ -12,15 +12,19 @@ The root configuration invokes three independent modules:
 | Module | Responsibility |
 | --- | --- |
 | `create_fabric_vms` | Creates virtual standard, border, extension, and `greatfox` leaves in Proxmox. Bare-metal inventory entries are skipped. |
-| `configure_fabric` | Configures the currently enabled border leaves through the VyOS API. |
+| `configure_fabric` | Configures both MikroTik spines and every enabled PVE, external-L2, and external-L3 leaf through the appropriate API. |
 | `configure_dhcp` | Configures only the two dedicated VyOS Kea DHCP nodes: system identity/DNS, physical service interfaces, scopes, HA, and disabled IPv4 forwarding. |
 
-There are 4 types of leaves:
-- cluster_leaves: VMs in PVE Cluster
-- single_leafs: stand alone PVE node (my main workstation btw)
-- border_leaves: external L3 connectivity to the rest of my lab/internet
-- fabric_leaves: external L2 connectivity to switches, For wireless clients and other physical devices.
-    - only a single fabric leaf until EVPN MH Split Horizon filters work for me
+Leaf inventory is consolidated under `fabric.nodes.leaves`; network deployment is selected by the required `role` field. The old groups map as follows:
+
+| Previous group | Role |
+| --- | --- |
+| `leaves` | `pve` |
+| `leaves_greatfox` | `pve` |
+| `fabric_ext_leaves` | `external_l2` |
+| `border_leaves` | `external_l3` |
+
+`proxmox_target` independently selects the VM endpoint (`pve` by default, or `greatfox`). `configure`, `is_vm`, and `started` independently control configuration selection, VM creation, and power.
   
 
 ### Design at a glance
@@ -45,10 +49,11 @@ See [`configure_fabric/README.md`](configure_fabric/README.md) for module owners
 ├── main.tf                       # root module wiring
 ├── vars.tf                       # public input contracts
 ├── versions.tf                  # provider constraints
-├── fabric.auto.tfvars           # nodes, fabric defaults, VRFs, and VNIs
+├── fabric.auto.tfvars           # nodes and fabric defaults
+├── vnis.auto.tfvars             # unified role-aware VNI catalogue
 ├── proxmox_vm.auto.tfvars       # VM sizing, storage, bridges, and DNS
 ├── dhcp.auto.tfvars             # DHCP defaults, HA selection, and node inventory
-├── external_l3.auto.tfvars      # border-leaf upstream settings
+├── external_connections.auto.tfvars # external L2/L3 connection settings
 ├── configure_fabric/
 │   ├── leaf_common/             # system, underlay, and BGP EVPN
 │   ├── leaf_l2_common/          # VXLAN devices, bridges, and SVIs
@@ -89,16 +94,20 @@ tofu apply --target=module.configure_fabric
 
 ### Nodes
 
-Edit the appropriate map in `fabric.auto.tfvars`:
+Edit `fabric.nodes.leaves` in `fabric.auto.tfvars`:
 
 ```hcl
-leaves = {
-  newleaf = { hypervisor_node = "newleaf", id = 21, is_vm = true }
+nodes = {
+  leaves = {
+    newleaf = { hypervisor_node = "newleaf", id = 21, role = "pve", is_vm = true }
+  }
 }
 ```
 
 - `id` drives VM ID (`700 + id`), BGP local AS, loopback addresses, and management address.
 - Fabric NIC MACs are derived as `02:<four-digit local-AS>:<four-digit node-id>:<interface>`; the decimal fields are split into octets without hexadecimal conversion (for example, node `11` uses `00:11`).
+- `role` is required and selects the leaf network configuration (`pve`, `external_l2`, or `external_l3`).
+- `proxmox_target` selects the Proxmox endpoint independently and defaults to `pve`.
 - `hypervisor_node` is required for VMs.
 - `is_vm = true` creates vm.
 - `started = true` powers the VM on. It defaults to `false`, allowing each leaf,
@@ -111,7 +120,18 @@ Node IDs must therefore be unique. Currently must be in range \[1-255\]
 
 ### VRFs and VNIs
 
-Edit `vnis.l3` in `fabric.auto.tfvars`. Each L3 entry describes a VRF, table, L3VNI, EVPN route targets, and optional VPN import/export behavior. Nested `l2` entries describe VLAN/VNI pairs, anycast gateways/MACs, and advertisement/export switches.
+Edit the root `vnis` list in `vnis.auto.tfvars`. Each object has required `roles` membership and is normalized by its string VNI key; list positions never identify resources. Each L3 entry describes a VRF, table, L3VNI, EVPN route targets, and optional VPN import/export behavior. Nested `l2` entries describe VLAN/VNI pairs, anycast gateways/MACs, and advertisement/export switches.
+
+Deployment membership is:
+
+| L3VNI | VRF | Roles |
+| --- | --- | --- |
+| 6200 | `lylat_infra` | `pve`, `external_l2` |
+| 6600 | `lylat_service` | `pve`, `external_l2` |
+| 6900 | `lylat_lan` | `pve`, `external_l2` |
+| 6666 | `lylat_external` | `external_l3` |
+
+Route-target imports remain catalogue intent and are not narrowed to locally deployed VNIs. DHCP consumes the complete normalized catalogue. The identical PVE, trunk, and inactive ESI `40_vrf_l3vni.tf` implementations are intentionally left in place as a later deduplication opportunity; border policy remains distinct.
 
 Useful conventions:
 
@@ -170,3 +190,16 @@ Useful MikroTik checks: (my current SPINE EVPN RRs)
 ```
 
 
+
+## Inventory/VNI refactor validation notes
+
+This input-only refactor preserves the existing module labels and map keys, so no
+resource or module addresses change and no `moved` blocks are required. Derived
+IPv4/IPv6 loopbacks, ASNs, and decimal-digit fabric MACs are unchanged. A
+provider-free fixture in `tests/refactor_fixture` covers role selection with an
+empty selection and an L3VNI with no L2 children; `tests/check_refactor.py`
+checks the committed node/VNI memberships, spine peer inventory, derivations,
+policy keys, and DHCP VNI order. Provider-backed validation requires exact
+source builds matching the pins in `versions.tf`; validation must not substitute
+or relabel another provider revision. No configuration is applied by these
+checks.

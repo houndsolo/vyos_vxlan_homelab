@@ -1,7 +1,6 @@
 provider_installation {
   filesystem_mirror {
-    path = "/home/mechanic/.terraform.d/plugins"
-
+    path = "./.tofu-provider-mirror"
     include = [
       "registry.terraform.io/houndsolo/vyos-rolling",
       "local/mechanic/proxmox",

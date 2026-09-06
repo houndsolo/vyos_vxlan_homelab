@@ -2,3 +2,4 @@ debug.log
 passwords.tf
 terraform.tfstate*
 .terraform*
+.tofu-provider-mirror/

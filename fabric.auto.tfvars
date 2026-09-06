@@ -37,6 +37,7 @@ fabric = {
     vni_filter                = true
   }
 
+<<<<<<< ours
   nodes = {
 
     evpn_rr = {
@@ -96,6 +97,63 @@ fabric = {
       greatfox = {
         hypervisor_node = "greatfox"
         id              = 20
+=======
+  evpn_rr = {
+    evpn-rr-1 = { hypervisor_node = "titania", id = 100, is_vm = true }
+    evpn-rr-2 = { hypervisor_node = "fortuna", id = 200, is_vm = true }
+  }
+  nodes = {
+    spines = {
+      #mikrotik 326
+      rtr1 = {
+        id        = 1
+        uplink_if = "eth1"
+        hosturl   = "http://10.20.0.5"
+        as        = 810
+      }
+      #mikrotik 326
+      rtr2 = {
+        id        = 2
+        uplink_if = "eth2"
+        hosturl   = "http://10.20.0.6"
+        as        = 810
+      }
+    }
+
+    leaves = {
+      fichina = { hypervisor_node = "fichina", id = 11, role = "pve", is_vm = true, started = true }
+      macbeth = { hypervisor_node = "macbeth", id = 12, role = "pve", is_vm = true, started = true }
+      titania = { hypervisor_node = "titania", id = 13, role = "pve", is_vm = true, started = true }
+      zoness  = { hypervisor_node = "zoness", id = 14, role = "pve", is_vm = true, started = true }
+      fortuna = { hypervisor_node = "fortuna", id = 15, role = "pve", is_vm = true, started = true }
+      eldarad = { hypervisor_node = "eldarad", id = 16, role = "pve", is_vm = true, started = true }
+      venom   = { hypervisor_node = "venom", id = 17, role = "pve", is_vm = true, started = true }
+
+      #fabric-1 = {
+      #  role               = "external_l2"
+      #  hypervisor_node    = "eldarad", id = 41, is_vm = true
+      #  underlay_peer_vlan = 400
+      #  underlay_bridges   = ["vmbr4001", "vmbr4002", "vmbr100"]
+      #  started            = true
+      #}
+      fabric-2 = {
+        id           = 42
+        role         = "external_l2"
+        is_vm        = false
+        spine_uplink = "ether10"
+      }
+
+      # n100 mini pc
+      border-1 = { id = 18, role = "external_l3", is_vm = false }
+      # n100 mini pc
+      border-2 = { id = 19, role = "external_l3", is_vm = false }
+
+      greatfox = {
+        hypervisor_node = "greatfox"
+        id              = 20
+        role            = "pve"
+        proxmox_target  = "greatfox"
+>>>>>>> theirs
         is_vm           = true
         started         = true
       }

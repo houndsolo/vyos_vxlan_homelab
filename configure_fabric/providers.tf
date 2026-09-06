@@ -1,6 +1,6 @@
 provider "routeros" {
   alias    = "spines"
-  for_each = var.fabric.spines
+  for_each = var.fabric.nodes.spines
   hosturl  = each.value.hosturl
   username = "admin"
   password = "admin"
@@ -9,7 +9,7 @@ provider "routeros" {
 
 provider "vyos" {
   alias    = "leaves"
-  for_each = var.fabric.leaves
+  for_each = { for name, node in var.fabric.nodes.leaves : name => node if node.role == "pve" && node.proxmox_target == "pve" }
   endpoint = "https://${cidrhost(var.fabric.defaults.vyos_mgmt_prefix, each.value.id)}"
   api_key  = var.vyos_key
   certificate = {
@@ -31,7 +31,7 @@ provider "vyos" {
 
 provider "vyos" {
   alias    = "fabric_leaves"
-  for_each = var.fabric.fabric_ext_leaves
+  for_each = { for name, node in var.fabric.nodes.leaves : name => node if node.role == "external_l2" }
   endpoint = "https://${cidrhost(var.fabric.defaults.vyos_mgmt_prefix, each.value.id)}"
   api_key  = var.vyos_key
   certificate = {
@@ -53,7 +53,7 @@ provider "vyos" {
 
 provider "vyos" {
   alias    = "spines"
-  for_each = var.fabric.spines
+  for_each = var.fabric.nodes.spines
   endpoint = "https://${cidrhost(var.fabric.defaults.vyos_mgmt_prefix, each.value.id)}"
   api_key  = var.vyos_key
   certificate = {
@@ -77,7 +77,7 @@ provider "vyos" {
 
 provider "vyos" {
   alias    = "greatfox"
-  endpoint = "https://${cidrhost(var.fabric.defaults.vyos_mgmt_prefix, one(values(var.fabric.leaves_greatfox)).id)}"
+  endpoint = "https://${cidrhost(var.fabric.defaults.vyos_mgmt_prefix, one([for node in values(var.fabric.nodes.leaves) : node.id if node.role == "pve" && node.proxmox_target == "greatfox"]))}"
   api_key  = var.vyos_key
   certificate = {
     disable_verify = var.fabric.defaults.vyos_provider_disable_verify
@@ -98,7 +98,7 @@ provider "vyos" {
 
 provider "vyos" {
   alias    = "border_leaves"
-  for_each = var.fabric.border_leaves
+  for_each = { for name, node in var.fabric.nodes.leaves : name => node if node.role == "external_l3" }
   endpoint = "https://${cidrhost(var.fabric.defaults.vyos_mgmt_prefix, each.value.id)}"
   api_key  = var.vyos_key
   certificate = {

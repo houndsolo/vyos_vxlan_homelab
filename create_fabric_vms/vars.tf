@@ -41,48 +41,24 @@ variable "fabric" {
       is_vm            = optional(bool, true)
       underlay_bridges = optional(list(string), null)
     })), {})
-    spines = map(object({
-      id              = number
-      uplink_if       = optional(string, null)
-      hypervisor_node = optional(string, null)
-    }))
-
-    leaves = map(object({
-      id                 = number
-      hypervisor_node    = optional(string, null)
-      is_vm              = optional(bool, true)
-      started            = optional(bool, false)
-      underlay_bridges   = optional(list(string), null)
-      fabric_macs        = map(string)
-      underlay_peer_vlan = optional(number, null)
-    }))
-    fabric_ext_leaves = map(object({
-      id                 = number
-      hypervisor_node    = optional(string, null)
-      is_vm              = optional(bool, true)
-      started            = optional(bool, false)
-      underlay_bridges   = optional(list(string), null)
-      fabric_macs        = map(string)
-      underlay_peer_vlan = optional(number, null)
-    }))
-    border_leaves = map(object({
-      id                 = number
-      hypervisor_node    = optional(string, null)
-      is_vm              = optional(bool, true)
-      started            = optional(bool, false)
-      underlay_bridges   = optional(list(string), null)
-      fabric_macs        = map(string)
-      underlay_peer_vlan = optional(number, null)
-    }))
-    leaves_greatfox = map(object({
-      id                 = number
-      hypervisor_node    = optional(string, null)
-      is_vm              = optional(bool, true)
-      started            = optional(bool, false)
-      underlay_bridges   = optional(list(string), null)
-      fabric_macs        = map(string)
-      underlay_peer_vlan = optional(number, null)
-    }))
+    nodes = object({
+      spines = map(object({
+        id              = number
+        uplink_if       = optional(string, null)
+        hypervisor_node = optional(string, null)
+      }))
+      leaves = map(object({
+        id                 = number
+        role               = string
+        proxmox_target     = string
+        hypervisor_node    = optional(string, null)
+        is_vm              = optional(bool, true)
+        started            = optional(bool, false)
+        underlay_bridges   = optional(list(string), null)
+        fabric_macs        = map(string)
+        underlay_peer_vlan = optional(number, null)
+      }))
+    })
   })
 }
 

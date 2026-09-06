@@ -1,6 +1,6 @@
 resource "vyos_vrf_name" "create_vrfs" {
   depends_on = [module.leaf_common]
-  for_each   = var.vnis.external_l3
+  for_each   = var.vnis.l3
 
   identifier = { name = each.value.vrf }
 
